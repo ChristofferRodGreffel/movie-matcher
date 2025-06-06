@@ -1,11 +1,11 @@
 import React from "react";
-import { getNavigate } from "../utils/navigation";
+import { Link } from "react-router-dom";
 
 const Home = () => {
   return (
     <div>
-      <button onClick={() => getNavigate()("/create")}>Create session</button>
-      <button onClick={() => getNavigate()("/join")}>Join session</button>
+      <Link to="/configure">Create session</Link>
+      <Link to="/join">Join session</Link>
     </div>
   );
 };
