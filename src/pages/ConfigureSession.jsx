@@ -5,6 +5,7 @@ import ProviderCard from "../components/ProviderCard";
 import GenreCard from "../components/GenreCard";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { getNavigate } from "../utils/navigation";
+import supabase from "../api/supabase";
 
 const ConfigureSession = () => {
   const [providers, setProviders] = useState([]);
@@ -20,21 +21,19 @@ const ConfigureSession = () => {
     fetchData();
   }, []);
 
-  const ensureUserIdExists = () => {
-    let userId = localStorage.getItem('user_id');
+  const ensureUserIdExists = async () => {
+    let userId = localStorage.getItem("user_id");
     if (!userId) {
       userId = uuidv4();
-      localStorage.setItem('user_id', userId);
+      localStorage.setItem("user_id", userId);
+      await supabase.from("users").insert({ id: userId });
     }
   };
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [providersData, genresData] = await Promise.all([
-        TMDBApi.getProviders(),
-        TMDBApi.getGenres(),
-      ]);
+      const [providersData, genresData] = await Promise.all([TMDBApi.getProviders(), TMDBApi.getGenres()]);
 
       setProviders(providersData.results);
       setGenres(genresData.genres);
@@ -48,18 +47,12 @@ const ConfigureSession = () => {
 
   const toggleProvider = (providerId) => {
     setSelectedProviders((prev) =>
-      prev.includes(providerId)
-        ? prev.filter((id) => id !== providerId)
-        : [...prev, providerId]
+      prev.includes(providerId) ? prev.filter((id) => id !== providerId) : [...prev, providerId]
     );
   };
 
   const toggleGenre = (genreId) => {
-    setSelectedGenres((prev) =>
-      prev.includes(genreId)
-        ? prev.filter((id) => id !== genreId)
-        : [...prev, genreId]
-    );
+    setSelectedGenres((prev) => (prev.includes(genreId) ? prev.filter((id) => id !== genreId) : [...prev, genreId]));
   };
 
   const handleCreateSession = async () => {
@@ -70,23 +63,22 @@ const ConfigureSession = () => {
 
     try {
       setCreatingSession(true);
-      
+
       const sessionId = uuidv4();
-      const userId = localStorage.getItem('user_id');
-      
+      const userId = localStorage.getItem("user_id");
+
       const sessionConfig = {
         providers: selectedProviders,
         genres: selectedGenres,
         createdBy: userId,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
       };
-      
+
       localStorage.setItem(`session_${sessionId}`, JSON.stringify(sessionConfig));
-      localStorage.setItem(`host_${sessionId}`, 'true');
-      
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      localStorage.setItem(`host_${sessionId}`, "true");
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       getNavigate()(`/lobby/${sessionId}`);
-      
     } catch (err) {
       console.error("Failed to create session:", err);
       alert("Failed to create session. Please try again.");
@@ -114,9 +106,7 @@ const ConfigureSession = () => {
             />
           ))}
         </div>
-        <p className="mt-3 text-sm text-gray-600">
-          Selected: {selectedProviders.length} providers
-        </p>
+        <p className="mt-3 text-sm text-gray-600">Selected: {selectedProviders.length} providers</p>
       </div>
 
       <div className="mb-8">
@@ -131,9 +121,7 @@ const ConfigureSession = () => {
             />
           ))}
         </div>
-        <p className="mt-3 text-sm text-gray-600">
-          Selected: {selectedGenres.length} genres
-        </p>
+        <p className="mt-3 text-sm text-gray-600">Selected: {selectedGenres.length} genres</p>
       </div>
 
       <div className="flex justify-end mt-8">
