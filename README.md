@@ -1,12 +1,93 @@
-# React + Vite
+# 🎬 Movie Matcher
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Movie Matcher** is a real-time web app that helps friends decide what to watch. Each user joins a session and swipes through movies by liking or disliking them. When everyone is done, the app shows which movies all users liked — ending movie night debates once and for all.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 Features
 
-## Expanding the ESLint configuration
+- 🔗 **Joinable Sessions** – Share a code or link to vote together  
+- 👍👎 **Swipe to Like or Dislike** – Fast and intuitive UI  
+- 🎯 **Get Instant Matches** – See movies everyone liked  
+- 🎬 **Live Movie Info** – Powered by the TMDb API  
+- ⚡ **Realtime Updates** – Synced using Supabase  
+- 📱 **Mobile-First Design** – Optimized for all devices  
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## 🛠 Tech Stack
+
+- **Frontend:** React + Tailwind CSS  
+- **Backend & Realtime:** Supabase (Auth, Database, Subscriptions)  
+- **Movie Data:** TMDb API  
+- **Hosting:** (e.g. Vercel or Netlify)  
+
+---
+
+## 📦 Getting Started
+
+### Clone the repository
+
+```bash
+git clone https://github.com/yourusername/movie-matcher.git
+cd movie-matcher
+```
+
+### Install dependencies
+
+```bash
+npm install
+```
+
+### Create a `.env` file
+
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_TMDB_API_KEY=your_tmdb_api_key
+```
+
+### Start the development server
+
+```bash
+npm run dev
+```
+
+---
+
+## 🧪 How It Works
+
+1. Create or join a shared session  
+2. Swipe through a list of movies and like or dislike them  
+3. Once all participants are done, the app shows all matches (movies that everyone liked)  
+4. Choose a match and start watching 🎉  
+
+---
+
+## 🌍 Live Demo
+
+_Coming soon:_ [movie-matcher.example.com](https://movie-matcher.example.com)
+
+---
+
+## 📸 Screenshots
+
+<!-- Example: ![Session screen](./screenshots/session.png) -->
+
+---
+
+## 🤝 Contributing
+
+Pull requests are welcome! If you have ideas for new features or improvements, feel free to open an issue or submit a PR.
+
+---
+
+## 📝 License
+
+This project is licensed under the [MIT License](LICENSE).
+
+---
+
+## 💡 Why?
+
+Because picking a movie shouldn’t take longer than watching one.
