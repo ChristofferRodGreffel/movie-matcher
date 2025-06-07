@@ -162,7 +162,7 @@ const ConfigureSession = () => {
 
       if (error) throw error;
 
-      navigate(`/matching/${sessionId}`);
+      navigate(`/session/${sessionId}`);
     } catch (err) {
       console.error("Failed to start matching:", err);
       alert("Failed to start matching. Please try again.");
@@ -191,13 +191,13 @@ const ConfigureSession = () => {
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold">Configure Session</h2>
+        <h2 className="text-2xl text-theme-primary font-bold">Configure Session</h2>
         <div className="text-sm text-gray-600">🤝 Everyone can add/remove options</div>
       </div>
 
       {/* Collaborative info banner */}
-      <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <p className="text-blue-800">
+      <div className="mb-6 p-4 bg-theme-secondary border border-theme-link rounded-lg">
+        <p className="text-theme-primary">
           <strong>Collaborative Configuration:</strong> Everyone in the session can add or remove streaming providers
           and genres.
           {isHost
@@ -207,7 +207,7 @@ const ConfigureSession = () => {
       </div>
 
       <div className="mb-8">
-        <h3 className="text-xl font-semibold mb-4">Select Streaming Providers</h3>
+        <h3 className="text-xl text-theme-primary font-semibold mb-4">Select Streaming Providers</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {providers.map((provider) => (
             <ProviderCard
@@ -223,7 +223,7 @@ const ConfigureSession = () => {
       </div>
 
       <div className="mb-8">
-        <h3 className="text-xl font-semibold mb-4">Select Genres</h3>
+        <h3 className="text-xl text-theme-primary font-semibold mb-4">Select Genres</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
           {genres.map((genre) => (
             <GenreCard
@@ -245,7 +245,7 @@ const ConfigureSession = () => {
             onClick={startMatching}
             disabled={selectedProviders.length === 0 || selectedGenres.length === 0}
             className={`
-              px-8 py-3 rounded-lg font-semibold text-white transition-all duration-200
+              px-8 py-3 rounded-lg font-semibold text-white transition-all duration-200 cursor-pointer
               ${
                 selectedProviders.length === 0 || selectedGenres.length === 0
                   ? "bg-gray-400 cursor-not-allowed"

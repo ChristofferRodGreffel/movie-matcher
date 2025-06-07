@@ -1,26 +1,20 @@
 import React, { useState, useEffect } from "react";
-import themeManager from "../utils/themeManager";
 
 const ThemeToggle = ({ className = "" }) => {
-  const [isDark, setIsDark] = useState(themeManager.isDarkMode());
+  const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
-    const observer = themeManager.onThemeChange((theme) => {
-      setIsDark(theme === "dark");
-    });
-
-    return () => observer.disconnect();
-  }, []);
-
-  const toggleTheme = () => {
-    const newTheme = themeManager.toggleTheme();
-    setIsDark(newTheme === "dark");
-  };
+    if (isDark) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [isDark]);
 
   return (
     <button
-      onClick={toggleTheme}
-      className={`relative inline-flex items-center justify-center w-10 h-10 rounded-lg bg-theme-secondary hover:bg-theme-tertiary transition-all duration-200 group ${className}`}
+      onClick={() => setIsDark(!isDark)}
+      className={`relative inline-flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-200 group cursor-pointer ${className}`}
       title={`Switch to ${isDark ? "light" : "dark"} mode`}
     >
       {/* Sun Icon */}
@@ -40,7 +34,7 @@ const ThemeToggle = ({ className = "" }) => {
 
       {/* Moon Icon */}
       <svg
-        className={`absolute w-5 h-5 text-blue-400 transition-all duration-300 transform ${
+        className={`absolute w-5 h-5 text-theme-link transition-all duration-300 transform ${
           isDark ? "scale-100 rotate-0 opacity-100" : "scale-0 -rotate-90 opacity-0"
         }`}
         fill="currentColor"

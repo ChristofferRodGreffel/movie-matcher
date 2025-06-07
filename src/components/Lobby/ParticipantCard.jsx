@@ -1,6 +1,6 @@
 const ParticipantCard = ({ participant, isOwner, isSelf }) => {
   return (
-    <div className="flex items-center justify-between gap-3 p-3 bg-gray-50 rounded-lg">
+    <div className="flex items-center justify-between gap-3 p-3 bg-theme-secondary rounded-lg">
       <div className="flex items-center gap-3">
         <img
           src={`https://api.dicebear.com/9.x/identicon/svg?seed=${participant.user_id}`}
@@ -11,8 +11,9 @@ const ParticipantCard = ({ participant, isOwner, isSelf }) => {
             e.target.nextSibling.style.display = "flex";
           }}
         />
-        <div className="font-medium text-gray-800 flex flex-col leading-tight">
+        <div className="font-medium text-theme-primary flex flex-col leading-tight">
           <p>{participant.users.username}</p>
+          {isOwner && !isSelf && <p className="text-xs text-primary">(Host)</p>}
           {isSelf && <p className="text-xs text-primary">(You)</p>}
         </div>
       </div>

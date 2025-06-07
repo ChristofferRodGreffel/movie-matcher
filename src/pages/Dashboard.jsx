@@ -4,6 +4,7 @@ import supabase from "../api/supabase";
 import LoadingSpinner from "../components/LoadingSpinner";
 import useUserStore from "../stores/userStore";
 import ProfileAvatar from "../components/ProfileAvatar";
+import SessionCard from "../components/Dashboard/SessionCard";
 
 const Dashboard = () => {
   const [sessions, setSessions] = useState([]);
@@ -133,7 +134,7 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-theme-secondary">
         <LoadingSpinner />
       </div>
     );
@@ -141,7 +142,7 @@ const Dashboard = () => {
 
   if (error) {
     return (
-      <div className="p-6 max-w-6xl mx-auto">
+      <div className="p-6 max-w-6xl mx-auto bg-theme-secondary min-h-screen">
         <div className="text-red-500 text-center">{error}</div>
       </div>
     );
@@ -150,8 +151,8 @@ const Dashboard = () => {
   return (
     <div className="p-6 max-w-6xl mx-auto bg-theme-secondary min-h-screen">
       {/* User Profile Section */}
-      <div className="bg-theme-primary rounded-lg shadow-sm p-6 mb-8">
-        <div className="flex items-center space-x-4">
+      <div className="bg-theme-primary rounded-lg shadow-sm p-6 mb-8 border border-theme-primary">
+        <div className="flex flex-wrap items-center gap-4">
           <ProfileAvatar id={userId} size="16" />
           <div>
             <h1 className="text-2xl font-bold text-theme-primary">Welcome back, {username || "User"}!</h1>
@@ -162,17 +163,17 @@ const Dashboard = () => {
 
       {/* Dashboard Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-theme-primary rounded-lg shadow-sm p-6">
+        <div className="bg-theme-primary rounded-lg shadow-sm p-6 border border-theme-primary">
           <div className="text-2xl font-bold text-blue-600">{sessions.length}</div>
           <div className="text-sm text-theme-secondary">Total Sessions</div>
         </div>
-        <div className="bg-theme-primary rounded-lg shadow-sm p-6">
+        <div className="bg-theme-primary rounded-lg shadow-sm p-6 border border-theme-primary">
           <div className="text-2xl font-bold text-green-600">
             {sessions.filter((s) => s.status === "completed").length}
           </div>
           <div className="text-sm text-theme-secondary">Completed Sessions</div>
         </div>
-        <div className="bg-theme-primary rounded-lg shadow-sm p-6">
+        <div className="bg-theme-primary rounded-lg shadow-sm p-6 border border-theme-primary">
           <div className="text-2xl font-bold text-purple-600">
             {sessions.filter((s) => s.status === "matching").length}
           </div>
@@ -181,7 +182,7 @@ const Dashboard = () => {
       </div>
 
       {/* Sessions Section */}
-      <div className="bg-theme-primary rounded-lg shadow-sm p-6">
+      <div className="bg-theme-primary rounded-lg shadow-sm p-6 border border-theme-primary">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold text-theme-primary">Your Sessions</h2>
           <div className="flex gap-3">
@@ -193,7 +194,7 @@ const Dashboard = () => {
             </Link>
             <Link
               to="/join"
-              className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors text-sm"
+              className="px-4 py-2 bg-theme-surface text-theme-secondary rounded-lg hover:bg-theme-surface/70 transition-colors text-sm border border-theme-primary"
             >
               Join Session
             </Link>
@@ -202,8 +203,10 @@ const Dashboard = () => {
 
         {sessions.length === 0 ? (
           <div className="text-center py-12">
-            <div className="text-gray-500 text-lg mb-4">No sessions found</div>
-            <p className="text-gray-400 mb-6">Get started by creating your first session or joining an existing one.</p>
+            <div className="text-theme-secondary text-lg mb-4">No sessions found</div>
+            <p className="text-theme-secondary mb-6">
+              Get started by creating your first session or joining an existing one.
+            </p>
             <div className="flex justify-center gap-4">
               <Link
                 to="/"
@@ -213,7 +216,7 @@ const Dashboard = () => {
               </Link>
               <Link
                 to="/join"
-                className="inline-block px-6 py-3 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors"
+                className="inline-block px-6 py-3 bg-theme-surface text-theme-secondary rounded-lg hover:bg-theme-surface/70 transition-colors border border-theme-primary"
               >
                 Join an Existing Session
               </Link>
@@ -222,51 +225,15 @@ const Dashboard = () => {
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {sessions.map((session) => (
-              <div
+              <SessionCard
                 key={session.id}
-                className="bg-gray-50 border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="font-semibold text-gray-800 mb-1">Session {session.id.slice(0, 8)}...</h3>
-                    <p className="text-sm text-gray-500">Created {formatDate(session.created_at)}</p>
-                  </div>
-                  <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(session.status)}`}>
-                    {session.status}
-                  </span>
-                </div>
-
-                <div className="mb-4 text-sm text-gray-600">
-                  <div
-                    onClick={() => copyJoinCode(session.join_code)}
-                    className="relative mb-3 p-3 border-2 border-dashed border-blue-300 rounded-lg bg-blue-50 cursor-pointer hover:bg-blue-100 transition-colors group"
-                  >
-                    <div className="font-mono font-bold text-lg text-blue-600 text-center tracking-wider">
-                      {session.join_code}
-                    </div>
-                    <div className="text-xs text-blue-500 text-center mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {copiedCode === session.join_code ? "Copied!" : "Click to copy"}
-                    </div>
-                  </div>
-                  <div>Platforms: {session.platform_ids?.length || 0}</div>
-                  <div>Genres: {session.genre_ids?.length || 0}</div>
-                </div>
-
-                <div className="flex gap-2">
-                  <Link
-                    to={`/lobby/${session.id}`}
-                    className="flex-1 px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors text-center"
-                  >
-                    Open
-                  </Link>
-                  <button
-                    onClick={() => deleteSession(session.id)}
-                    className="px-3 py-2 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors cursor-pointer"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
+                session={session}
+                formatDate={formatDate}
+                getStatusColor={getStatusColor}
+                copiedCode={copiedCode}
+                copyJoinCode={copyJoinCode}
+                deleteSession={deleteSession}
+              />
             ))}
           </div>
         )}

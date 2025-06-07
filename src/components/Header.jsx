@@ -29,13 +29,13 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-theme-primary shadow-sm">
+    <header className="bg-theme-primary shadow-sm border-b border-theme-primary">
       <div className="max-w-6xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <div
             onClick={handleLogoClick}
-            className="text-2xl font-bold text-theme-primary cursor-pointer hover:text-blue-600 transition-colors"
+            className="text-2xl font-bold text-theme-primary cursor-pointer hover:text-theme-link transition-colors"
           >
             Movie Matcher
           </div>
@@ -45,7 +45,7 @@ const Header = () => {
             <Link
               to="/"
               className={`font-medium transition-colors ${
-                isActive("/") ? "text-blue-600" : "text-theme-secondary hover:text-blue-600"
+                isActive("/") ? "text-theme-link" : "text-theme-secondary text-theme-link-hover"
               }`}
             >
               Home
@@ -54,7 +54,7 @@ const Header = () => {
             <Link
               to="/join"
               className={`font-medium transition-colors ${
-                isActive("/join") ? "text-blue-600" : "text-theme-secondary hover:text-blue-600"
+                isActive("/join") ? "text-theme-link" : "text-theme-secondary text-theme-link-hover"
               }`}
             >
               Join Session
@@ -66,7 +66,7 @@ const Header = () => {
             {/* User Avatar */}
             <Link
               to="/dashboard"
-              className="flex items-center gap-2 p-2 rounded-lg hover:bg-theme-secondary transition-colors"
+              className="flex items-center gap-2 p-2 rounded-lg hover:bg-theme-surface transition-colors"
               title="Go to My Sessions"
             >
               <ProfileAvatar id={userId} size="8" />
@@ -79,7 +79,7 @@ const Header = () => {
 
             <Link
               to="/dashboard"
-              className="flex items-center p-1 rounded-lg hover:bg-theme-secondary transition-colors"
+              className="flex items-center p-1 rounded-lg hover:bg-theme-surface transition-colors"
               title="Go to My Sessions"
             >
               <ProfileAvatar id={userId} size="8" />
@@ -87,7 +87,7 @@ const Header = () => {
 
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="p-2 rounded-lg text-theme-secondary hover:text-blue-600 hover:bg-theme-secondary"
+              className="p-2 rounded-lg text-theme-secondary text-theme-link-hover hover:bg-theme-surface"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {isMenuOpen ? (
@@ -116,16 +116,16 @@ const Header = () => {
 
           {/* Menu Panel */}
           <div
-            className={`absolute top-0 right-0 h-full w-80 max-w-[85vw] bg-white shadow-2xl transform transition-transform duration-300 ease-in-out ${
+            className={`absolute top-0 right-0 h-full w-80 max-w-[85vw] bg-theme-primary shadow-2xl transform transition-transform duration-300 ease-in-out border-l border-theme-primary ${
               isMenuOpen ? "translate-x-0" : "translate-x-full"
             }`}
           >
             {/* Menu Header */}
-            <div className="flex items-center justify-between p-6">
+            <div className="flex items-center justify-between p-6 border-b border-theme-primary">
               <div className="text-xl font-bold text-theme-primary">Menu</div>
               <button
                 onClick={() => setIsMenuOpen(false)}
-                className="p-2 rounded-lg text-theme-secondary hover:text-theme-primary hover:bg-theme-secondary transition-colors"
+                className="p-2 rounded-lg text-theme-secondary hover:text-theme-primary hover:bg-theme-surface transition-colors"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -141,8 +141,8 @@ const Header = () => {
                   onClick={handleLinkClick}
                   className={`flex items-center px-4 py-3 rounded-lg text-lg font-medium transition-colors ${
                     isActive("/")
-                      ? "bg-blue-50 text-blue-600 border-l-4 border-blue-600"
-                      : "text-theme-primary hover:bg-theme-secondary hover:text-blue-600"
+                      ? "bg-theme-link-light text-theme-link border-l-4 border-theme-link"
+                      : "text-theme-primary hover:bg-theme-surface text-theme-link-hover"
                   }`}
                 >
                   <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -161,8 +161,8 @@ const Header = () => {
                   onClick={handleLinkClick}
                   className={`flex items-center px-4 py-3 rounded-lg text-lg font-medium transition-colors ${
                     isActive("/join")
-                      ? "bg-blue-50 text-blue-600 border-l-4 border-blue-600"
-                      : "text-theme-primary hover:bg-theme-secondary hover:text-blue-600"
+                      ? "bg-theme-link-light text-theme-link border-l-4 border-theme-link"
+                      : "text-theme-primary hover:bg-theme-surface text-theme-link-hover"
                   }`}
                 >
                   <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -176,8 +176,8 @@ const Header = () => {
                   onClick={handleLinkClick}
                   className={`flex items-center px-4 py-3 rounded-lg text-lg font-medium transition-colors ${
                     isActive("/dashboard")
-                      ? "bg-blue-50 text-blue-600 border-l-4 border-blue-600"
-                      : "text-theme-primary hover:bg-theme-secondary hover:text-blue-600"
+                      ? "bg-theme-link-light text-theme-link border-l-4 border-theme-link"
+                      : "text-theme-primary hover:bg-theme-surface text-theme-link-hover"
                   }`}
                 >
                   <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -191,11 +191,11 @@ const Header = () => {
                   My Sessions
                 </Link>
 
-                <div className="pt-4 mt-4 border-t border-theme">
+                <div className="pt-4 mt-4 border-t border-theme-primary">
                   <Link
                     to="/"
                     onClick={handleLinkClick}
-                    className="flex items-center justify-center px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-lg shadow-lg"
+                    className="flex items-center justify-center px-6 py-4 bg-theme-link text-white rounded-lg hover:bg-theme-link-hover transition-colors font-medium text-lg shadow-lg"
                   >
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

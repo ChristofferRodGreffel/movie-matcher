@@ -4,7 +4,7 @@ import ParticipantCard from "./ParticipantCard";
 const ParticipantsList = ({ participants, session, userId }) => {
   return (
     <div className="mb-8">
-      <h3 className="text-xl font-semibold text-gray-800 mb-4">Participants ({participants.length})</h3>
+      <h3 className="text-xl font-semibold text-theme-primary mb-4">Participants ({participants.length})</h3>
       <div className="grid gap-4">
         {participants.map((participant, index) => (
           <ParticipantCard

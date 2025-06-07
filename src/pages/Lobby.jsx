@@ -257,16 +257,16 @@ const Lobby = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-theme-secondary">
         <LoadingSpinner />
-        {joining && <span className="ml-2">Joining session...</span>}
+        {joining && <span className="ml-2 text-theme-primary">Joining session...</span>}
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-6 max-w-4xl mx-auto text-center">
+      <div className="p-6 max-w-4xl mx-auto text-center bg-theme-secondary min-h-screen">
         <div className="text-red-500 text-xl mb-4">{error}</div>
         <button onClick={() => navigate("/")} className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
           Back to Home
@@ -276,22 +276,22 @@ const Lobby = () => {
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <div className="bg-white rounded-lg shadow-lg p-8">
+    <div className="p-6 max-w-6xl mx-auto bg-theme-secondary min-h-screen">
+      <div className="bg-theme-primary rounded-lg shadow-lg p-8 border border-theme-primary">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-6">
+          <h1 className="text-3xl font-bold text-theme-primary mb-6">
             {isHost ? "Your Movie Session" : "Movie Session Lobby"}
           </h1>
 
           {/* Join Methods Section */}
           <div className="grid md:grid-cols-2 gap-8 mb-8">
             {/* QR Code Section */}
-            <div className="bg-gray-50 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-700 mb-4">Scan to Join</h3>
+            <div className="bg-theme-surface rounded-lg p-6 border border-theme-primary">
+              <h3 className="text-lg font-semibold text-theme-primary mb-4">Scan to Join</h3>
               {session?.join_code && (
                 <div className="flex justify-center">
-                  <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                  <div className="p-4 bg-theme-secondary border border-theme-primary rounded-lg shadow-sm">
                     <QRCode
                       value={`http://192.168.86.55:5173/join?code=${session.join_code}`}
                       size={160}
@@ -304,19 +304,21 @@ const Lobby = () => {
             </div>
 
             {/* Join Code Section */}
-            <div className="bg-gray-50 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-700 mb-4">Use Join Code</h3>
+            <div className="bg-theme-surface rounded-lg p-6 border border-theme-primary">
+              <h3 className="text-lg font-semibold text-theme-primary mb-4">Use Join Code</h3>
               <div className="flex flex-col items-center gap-4">
                 <div
                   onClick={copyJoinCode}
-                  className="px-6 py-4 border-2 border-dashed border-blue-300 select-none rounded-lg bg-blue-50 cursor-pointer hover:bg-blue-100 transition-colors w-full max-w-xs touch-manipulation"
+                  className="px-6 py-4 border-2 border-dashed border-blue-300 dark:border-blue-600 select-none rounded-lg bg-blue-50 dark:bg-blue-900/30 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors w-full max-w-xs touch-manipulation"
                 >
                   <div className="font-mono font-bold text-2xl text-blue-600 tracking-wider text-center">
                     {session?.join_code}
                   </div>
                   <div className="text-sm text-blue-500 mt-2 text-center">{copiedCode ? "Copied!" : "Tap to copy"}</div>
                 </div>
-                <p className="text-sm text-gray-600 text-center">Share this code with others or visit the join page</p>
+                <p className="text-sm text-theme-secondary text-center">
+                  Share this code with others or visit the join page
+                </p>
               </div>
             </div>
           </div>
@@ -325,13 +327,15 @@ const Lobby = () => {
         {/* Host Message */}
         {isHost && (
           <div className="mb-8">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
-              <h2 className="text-xl font-semibold text-blue-800 mb-2">You're the Host!</h2>
-              <p className="text-blue-600 mb-4">
+            <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-6 text-center">
+              <h2 className="text-xl font-semibold text-blue-800 dark:text-blue-300 mb-2">You're the Host!</h2>
+              <p className="text-blue-600 dark:text-blue-400 mb-4">
                 Share the QR code or join code <strong>{session?.join_code}</strong> with others to let them join your
                 session.
               </p>
-              <p className="text-sm text-blue-500">Once everyone has joined, you can start configuring the session.</p>
+              <p className="text-sm text-blue-500 dark:text-blue-400">
+                Once everyone has joined, you can start configuring the session.
+              </p>
             </div>
           </div>
         )}

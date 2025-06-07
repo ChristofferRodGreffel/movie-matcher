@@ -109,13 +109,19 @@ const JoinSession = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-6">
-      <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">Join Matching Session</h1>
+    <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-theme-secondary">
+      <div className="bg-theme-primary rounded-lg shadow-lg p-8 w-full max-w-md border border-theme-primary">
+        <h1 className="text-2xl font-bold text-theme-primary mb-6 text-center">Join Matching Session</h1>
+
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg text-red-700 dark:text-red-400 text-sm">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="joinCode" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="joinCode" className="block text-sm font-medium text-theme-primary mb-2">
               Enter Join Code
             </label>
             <div className="relative">
@@ -125,7 +131,7 @@ const JoinSession = () => {
                 value={joinCode}
                 onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
                 placeholder="ABC123"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center font-mono text-lg tracking-wider pr-12"
+                className="w-full px-4 py-3 border border-theme-primary rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center font-mono text-lg tracking-wider pr-12 bg-theme-secondary text-theme-primary"
                 maxLength={6}
                 disabled={joining}
                 autoFocus
@@ -134,7 +140,7 @@ const JoinSession = () => {
                 <QRScanner onCodeDetected={handleQRCodeDetected} onError={handleQRError} disabled={joining} />
               </div>
             </div>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-theme-secondary mt-1">
               Tap the camera icon to scan a QR code with your device's camera
             </p>
           </div>
@@ -159,7 +165,7 @@ const JoinSession = () => {
         <div className="mt-6 text-center">
           <button
             onClick={() => navigate("/")}
-            className="flex justify-center gap-2 cursor-pointer p-3 bg-gray-100 rounded-md text-gray-600 hover:text-blue-700 font-medium"
+            className="flex justify-center gap-2 cursor-pointer p-3 bg-theme-surface rounded-md text-theme-secondary hover:text-blue-700 font-medium transition-colors"
           >
             <BsArrowLeft className="text-2xl" /> Back to Home
           </button>

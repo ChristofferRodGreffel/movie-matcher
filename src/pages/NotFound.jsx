@@ -8,7 +8,7 @@ const NotFound = () => {
     <div style={styles.container}>
       <div style={styles.content}>
         <div style={styles.errorCode}>404</div>
-        <div style={styles.title}>No Match Found!</div>
+        <div style={styles.title}>Page Not Found...</div>
         <div style={styles.subtitle}>
           We tried to match you with the perfect page, but this one seems to be out of our database. Maybe it's an indie
           film we haven't discovered yet?
