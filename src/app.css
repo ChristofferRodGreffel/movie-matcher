@@ -1,1 +1,135 @@
 @import "tailwindcss";
+
+:root {
+  /* Primary Colors - Dark Purple Theme */
+  --color-primary-50: #f3f0ff;
+  --color-primary-100: #e9e2ff;
+  --color-primary-200: #d6cbff;
+  --color-primary-300: #b8a6ff;
+  --color-primary-400: #9575ff;
+  --color-primary-500: #7c3aed;
+  --color-primary-600: #6d28d9;
+  --color-primary-700: #5b21b6;
+  --color-primary-800: #4c1d95;
+  --color-primary-900: #3c1361;
+
+  /* Neutral Colors - Light Mode */
+  --color-neutral-50: #fafafa;
+  --color-neutral-100: #f5f5f5;
+  --color-neutral-200: #e5e5e5;
+  --color-neutral-300: #d4d4d4;
+  --color-neutral-400: #a3a3a3;
+  --color-neutral-500: #737373;
+  --color-neutral-600: #525252;
+  --color-neutral-700: #404040;
+  --color-neutral-800: #262626;
+  --color-neutral-900: #171717;
+
+  /* Semantic Colors */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+
+  /* Surface Colors */
+  --color-background: var(--color-neutral-50);
+  --color-surface: #ffffff;
+  --color-surface-elevated: #ffffff;
+  --color-border: var(--color-neutral-200);
+
+  /* Text Colors */
+  --color-text-primary: var(--color-neutral-900);
+  --color-text-secondary: var(--color-neutral-600);
+  --color-text-muted: var(--color-neutral-400);
+  --color-text-inverse: #ffffff;
+}
+
+/* Dark Mode */
+[data-theme="dark"] {
+  /* Neutral Colors - Dark Mode */
+  --color-neutral-50: #0a0a0a;
+  --color-neutral-100: #171717;
+  --color-neutral-200: #262626;
+  --color-neutral-300: #404040;
+  --color-neutral-400: #525252;
+  --color-neutral-500: #737373;
+  --color-neutral-600: #a3a3a3;
+  --color-neutral-700: #d4d4d4;
+  --color-neutral-800: #e5e5e5;
+  --color-neutral-900: #f5f5f5;
+
+  /* Surface Colors - Dark Mode */
+  --color-background: #0f0f23;
+  --color-surface: #1a1a2e;
+  --color-surface-elevated: #16213e;
+  --color-border: var(--color-neutral-300);
+
+  /* Text Colors - Dark Mode */
+  --color-text-primary: var(--color-neutral-900);
+  --color-text-secondary: var(--color-neutral-600);
+  --color-text-muted: var(--color-neutral-400);
+  --color-text-inverse: var(--color-neutral-900);
+}
+
+/* Base styles */
+body {
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Custom CSS classes for easier usage */
+.bg-primary {
+  background-color: var(--color-primary-600);
+}
+.bg-primary-light {
+  background-color: var(--color-primary-100);
+}
+.bg-surface {
+  background-color: var(--color-surface);
+}
+.bg-surface-elevated {
+  background-color: var(--color-surface-elevated);
+}
+
+.text-primary {
+  color: var(--color-text-primary);
+}
+.text-secondary {
+  color: var(--color-text-secondary);
+}
+.text-muted {
+  color: var(--color-text-muted);
+}
+.text-primary-color {
+  color: var(--color-primary-600);
+}
+
+.border-default {
+  border-color: var(--color-border);
+}
+.border-primary {
+  border-color: var(--color-primary-600);
+}
+
+/* Button styles using color system */
+.btn-primary {
+  background-color: var(--color-primary-600);
+  color: var(--color-text-inverse);
+  border: 1px solid var(--color-primary-600);
+}
+
+.btn-primary:hover {
+  background-color: var(--color-primary-700);
+  border-color: var(--color-primary-700);
+}
+
+.btn-secondary {
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-neutral-100);
+}

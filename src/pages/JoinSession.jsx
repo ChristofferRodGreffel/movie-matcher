@@ -3,23 +3,9 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 import supabase from "../api/supabase";
 import LoadingSpinner from "../components/LoadingSpinner";
+import QRScanner from "../components/QRScanner";
 import { BsArrowLeft } from "react-icons/bs";
-
-const ensureUserIdExists = async () => {
-  let userId = localStorage.getItem("user_id");
-  if (!userId) {
-    userId = uuidv4();
-    localStorage.setItem("user_id", userId);
-
-    try {
-      await supabase.from("users").insert({
-        id: userId,
-      });
-    } catch (error) {
-      console.error("Failed to create user:", error);
-    }
-  }
-};
+import useUserStore from "../stores/userStore";
 
 const JoinSession = () => {
   const [joinCode, setJoinCode] = useState("");
@@ -27,6 +13,8 @@ const JoinSession = () => {
   const [error, setError] = useState("");
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+
+  const { getUserId } = useUserStore();
 
   useEffect(() => {
     // Check if there's a join code in the URL (from QR code)
@@ -48,9 +36,7 @@ const JoinSession = () => {
       setJoining(true);
       setError("");
 
-      // Ensure user exists
-      await ensureUserIdExists();
-      const userId = localStorage.getItem("user_id");
+      const userId = await getUserId();
 
       // Find session by join code
       const { data: session, error: sessionError } = await supabase
@@ -108,31 +94,49 @@ const JoinSession = () => {
     handleJoinSession();
   };
 
+  const handleQRCodeDetected = (qrData) => {
+    const joinCodeMatch = qrData.match(/code=([A-Z0-9]{6})/);
+    if (joinCodeMatch) {
+      setJoinCode(joinCodeMatch[1]);
+      handleJoinSession(joinCodeMatch[1]);
+    } else {
+      setError("QR code found but no valid join code detected. Please try again or enter the code manually.");
+    }
+  };
+
+  const handleQRError = (errorMessage) => {
+    setError(errorMessage);
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-6">
       <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
         <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">Join Matching Session</h1>
-
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>
-        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label htmlFor="joinCode" className="block text-sm font-medium text-gray-700 mb-2">
               Enter Join Code
             </label>
-            <input
-              type="text"
-              id="joinCode"
-              value={joinCode}
-              onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-              placeholder="ABC123"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center font-mono text-lg tracking-wider"
-              maxLength={6}
-              disabled={joining}
-              autoFocus
-            />
+            <div className="relative">
+              <input
+                type="text"
+                id="joinCode"
+                value={joinCode}
+                onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                placeholder="ABC123"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center font-mono text-lg tracking-wider pr-12"
+                maxLength={6}
+                disabled={joining}
+                autoFocus
+              />
+              <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                <QRScanner onCodeDetected={handleQRCodeDetected} onError={handleQRError} disabled={joining} />
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Tap the camera icon to scan a QR code with your device's camera
+            </p>
           </div>
 
           <button

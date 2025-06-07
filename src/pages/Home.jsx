@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 import supabase from "../api/supabase";
 import LoadingSpinner from "../components/LoadingSpinner";
-import { generateRandomUsername } from "../utils/username_generator";
+import useUserStore from "../stores/userStore";
 
 const generateJoinCode = () => {
   const chars = "ABCDEFGHIJKLMNPQRSTUVWXYZ123456789";
@@ -14,40 +14,21 @@ const generateJoinCode = () => {
   return result;
 };
 
-const ensureUserIdExists = async () => {
-  let userId = localStorage.getItem("user_id");
-  if (!userId) {
-    userId = uuidv4();
-    localStorage.setItem("user_id", userId);
-    const username = generateRandomUsername();
-
-    console.log("Creating new user with ID:", userId, "and username:", username);
-
-    try {
-      await supabase.from("users").insert({
-        id: userId,
-        username: username,
-      });
-    } catch (error) {
-      console.error("Failed to create user:", error);
-    }
-  }
-};
-
 const Home = () => {
   const [creatingSession, setCreatingSession] = useState(false);
   const [userSessions, setUserSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  const { initializeUser, getUserId } = useUserStore();
+
   useEffect(() => {
-    initializeUser();
+    initializeUserAndSessions();
   }, []);
 
-  const initializeUser = async () => {
+  const initializeUserAndSessions = async () => {
     try {
-      await ensureUserIdExists();
-      let userId = localStorage.getItem("user_id");
+      const userId = await initializeUser();
 
       // Get all sessions where user is a participant
       const { data: participantSessions, error: participantError } = await supabase
@@ -89,7 +70,7 @@ const Home = () => {
       setCreatingSession(true);
 
       const sessionId = uuidv4();
-      const userId = localStorage.getItem("user_id");
+      const userId = await getUserId();
 
       // Generate unique join code
       let joinCode;
@@ -97,11 +78,11 @@ const Home = () => {
 
       while (!isUnique) {
         joinCode = generateJoinCode();
-        const { data, error } = await supabase.from("sessions").select("id").eq("join_code", joinCode).maybeSingle(); // Use maybeSingle() instead of single()
+        const { data, error } = await supabase.from("sessions").select("id").eq("join_code", joinCode).maybeSingle();
 
         if (error) {
           console.error("Error checking join code:", error);
-          break; // Exit loop on error
+          break;
         }
 
         if (!data) isUnique = true;
@@ -140,8 +121,8 @@ const Home = () => {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-6">
       <div className="text-center space-y-8">
-        <h1 className="text-4xl font-bold text-gray-800">Movie Matcher</h1>
-        <p className="text-lg text-gray-600">Find movies everyone wants to watch</p>
+        <h1 className="text-4xl font-bold text-theme-primary">Movie Matcher</h1>
+        <p className="text-lg text-theme-secondary">Find movies everyone wants to watch</p>
 
         <div className="flex items-center justify-center flex-col gap-2">
           <button

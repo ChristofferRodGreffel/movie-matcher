@@ -6,6 +6,7 @@ import ProviderCard from "../components/ProviderCard";
 import GenreCard from "../components/GenreCard";
 import LoadingSpinner from "../components/LoadingSpinner";
 import supabase from "../api/supabase";
+import useUserStore from "../stores/userStore";
 
 const ConfigureSession = () => {
   const { sessionId } = useParams();
@@ -18,6 +19,8 @@ const ConfigureSession = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isHost, setIsHost] = useState(false);
+
+  const { getUserId } = useUserStore();
 
   useEffect(() => {
     initializeSession();
@@ -47,7 +50,7 @@ const ConfigureSession = () => {
 
   const initializeSession = async () => {
     try {
-      await ensureUserIdExists();
+      await getUserId();
       await loadSession();
       await fetchData();
       checkIfHost();
@@ -56,29 +59,6 @@ const ConfigureSession = () => {
       console.error(err);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const ensureUserIdExists = async () => {
-    let userId = localStorage.getItem("user_id");
-    if (!userId) {
-      userId = uuidv4();
-      localStorage.setItem("user_id", userId);
-
-      try {
-        // Generate a default avatar URL
-        const defaultIcon = `https://ui-avatars.com/api/?name=${userId.slice(
-          0,
-          2
-        )}&background=3b82f6&color=fff&size=128`;
-
-        await supabase.from("users").insert({
-          id: userId,
-          user_icon: defaultIcon,
-        });
-      } catch (error) {
-        console.error("Failed to create user:", error);
-      }
     }
   };
 

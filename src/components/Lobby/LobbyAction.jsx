@@ -15,7 +15,7 @@ const LobbyActions = ({ isHost, participantCount, onLeaveSession, onStartSession
           <button
             onClick={onStartSession}
             disabled={participantCount < 1}
-            className={`px-8 py-3 rounded-lg font-semibold transition-colors ${
+            className={`px-4 py-2 rounded-lg font-semibold transition-colors cursor-pointer ${
               participantCount < 1
                 ? "bg-gray-400 cursor-not-allowed text-white"
                 : "bg-blue-600 text-white hover:bg-blue-700"
