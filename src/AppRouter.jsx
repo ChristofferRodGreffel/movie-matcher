@@ -8,17 +8,20 @@ import NotFound from "./pages/NotFound";
 import NavigationSetup from "./components/NavigationSetup";
 import ConfigureSession from "./pages/ConfigureSession";
 import Dashboard from "./pages/Dashboard";
+import Lobby from "./pages/Lobby";
+import Header from "./components/Header";
 
 export default function AppRouter() {
   return (
     <Router>
+      <Header />
       <NavigationSetup />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/configure" element={<ConfigureSession />} />
         <Route path="/join" element={<JoinSession />} />
-        <Route path="/lobby/:sessionId" element={<Session />} />
+        <Route path="/lobby/:sessionId" element={<Lobby />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/configure/:sessionId" element={<ConfigureSession />} />
         <Route path="/session/:sessionId" element={<Session />} />
         <Route path="/match/:sessionId" element={<MatchFound />} />
         <Route path="*" element={<NotFound />} />

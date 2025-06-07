@@ -23,14 +23,37 @@ const Dashboard = () => {
         return;
       }
 
-      const { data, error } = await supabase
+      // Get all sessions where user is a participant
+      const { data: participantSessions, error: participantError } = await supabase
+        .from("session_users")
+        .select(
+          `
+          sessions (*)
+        `
+        )
+        .eq("user_id", userId);
+
+      // Get all sessions where user is the owner
+      const { data: ownedSessions, error: ownedError } = await supabase
         .from("sessions")
         .select("*")
-        .eq("owner_id", userId)
-        .order("created_at", { ascending: false });
+        .eq("owner_id", userId);
 
-      if (error) throw error;
-      setSessions(data || []);
+      if (participantError || ownedError) {
+        throw new Error("Failed to load sessions");
+      }
+
+      // Combine both arrays and remove duplicates
+      const allSessions = [...(ownedSessions || []), ...(participantSessions?.map((ps) => ps.sessions) || [])];
+
+      const uniqueSessions = allSessions.filter(
+        (session, index, self) => session && index === self.findIndex((s) => s?.id === session.id)
+      );
+
+      // Sort by created_at
+      uniqueSessions.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+      setSessions(uniqueSessions);
     } catch (err) {
       console.error("Error loading sessions:", err);
       setError("Failed to load sessions");
@@ -112,9 +135,6 @@ const Dashboard = () => {
     <div className="p-6 max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold text-gray-800">My Sessions</h1>
-        <Link to="/" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-          Create New Session
-        </Link>
       </div>
 
       {sessions.length === 0 ? (
@@ -125,6 +145,13 @@ const Dashboard = () => {
             className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             Create Your First Session
+          </Link>
+          <p>Or</p>
+          <Link
+            to="/join"
+            className="inline-block px-6 py-3 mt-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors"
+          >
+            Join an Existing Session
           </Link>
         </div>
       ) : (

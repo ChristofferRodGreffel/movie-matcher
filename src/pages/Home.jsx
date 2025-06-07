@@ -3,14 +3,35 @@ import { Link, useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 import supabase from "../api/supabase";
 import LoadingSpinner from "../components/LoadingSpinner";
+import { generateRandomUsername } from "../utils/username_generator";
 
 const generateJoinCode = () => {
-  const chars = "ABCDEFGHIJKLMNPQRSTUVWXYZ123456789"; // Exclude O, 0 for clarity
+  const chars = "ABCDEFGHIJKLMNPQRSTUVWXYZ123456789";
   let result = "";
   for (let i = 0; i < 6; i++) {
     result += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return result;
+};
+
+const ensureUserIdExists = async () => {
+  let userId = localStorage.getItem("user_id");
+  if (!userId) {
+    userId = uuidv4();
+    localStorage.setItem("user_id", userId);
+    const username = generateRandomUsername();
+
+    console.log("Creating new user with ID:", userId, "and username:", username);
+
+    try {
+      await supabase.from("users").insert({
+        id: userId,
+        username: username,
+      });
+    } catch (error) {
+      console.error("Failed to create user:", error);
+    }
+  }
 };
 
 const Home = () => {
@@ -25,23 +46,37 @@ const Home = () => {
 
   const initializeUser = async () => {
     try {
+      await ensureUserIdExists();
       let userId = localStorage.getItem("user_id");
 
-      if (!userId) {
-        // Create new user
-        userId = uuidv4();
-        localStorage.setItem("user_id", userId);
-        await supabase.from("users").insert({ id: userId });
-      }
+      // Get all sessions where user is a participant
+      const { data: participantSessions, error: participantError } = await supabase
+        .from("session_users")
+        .select(
+          `
+          sessions (*)
+        `
+        )
+        .eq("user_id", userId);
 
-      // Load user's sessions (don't redirect automatically)
-      const { data: sessions } = await supabase
+      // Get all sessions where user is the owner
+      const { data: ownedSessions, error: ownedError } = await supabase
         .from("sessions")
         .select("*")
-        .eq("owner_id", userId)
-        .order("created_at", { ascending: false });
+        .eq("owner_id", userId);
 
-      setUserSessions(sessions || []);
+      if (participantError || ownedError) {
+        console.error("Error loading sessions:", participantError || ownedError);
+      } else {
+        // Combine both arrays and remove duplicates
+        const allSessions = [...(ownedSessions || []), ...(participantSessions?.map((ps) => ps.sessions) || [])];
+
+        const uniqueSessions = allSessions.filter(
+          (session, index, self) => session && index === self.findIndex((s) => s?.id === session.id)
+        );
+
+        setUserSessions(uniqueSessions);
+      }
     } catch (error) {
       console.error("Error initializing user:", error);
     } finally {
@@ -62,7 +97,12 @@ const Home = () => {
 
       while (!isUnique) {
         joinCode = generateJoinCode();
-        const { data } = await supabase.from("sessions").select("id").eq("join_code", joinCode).single();
+        const { data, error } = await supabase.from("sessions").select("id").eq("join_code", joinCode).maybeSingle(); // Use maybeSingle() instead of single()
+
+        if (error) {
+          console.error("Error checking join code:", error);
+          break; // Exit loop on error
+        }
 
         if (!data) isUnique = true;
       }
@@ -79,10 +119,7 @@ const Home = () => {
 
       if (error) throw error;
 
-      // Mark user as host locally
       localStorage.setItem(`host_${sessionId}`, "true");
-
-      // Navigate to lobby
       navigate(`/lobby/${sessionId}`);
     } catch (error) {
       console.error("Failed to create session:", error);
