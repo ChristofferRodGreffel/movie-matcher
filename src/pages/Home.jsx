@@ -20,7 +20,7 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const { initializeUser, getUserId } = useUserStore();
+  const { initializeUser, getUserId, userId } = useUserStore();
 
   useEffect(() => {
     initializeUserAndSessions();
@@ -29,6 +29,13 @@ const Home = () => {
   const initializeUserAndSessions = async () => {
     try {
       const userId = await initializeUser();
+
+      // Check if userId is valid before making queries
+      if (!userId) {
+        console.warn("No user ID available, skipping session loading");
+        setUserSessions([]);
+        return;
+      }
 
       // Get all sessions where user is a participant
       const { data: participantSessions, error: participantError } = await supabase
@@ -60,12 +67,19 @@ const Home = () => {
       }
     } catch (error) {
       console.error("Error initializing user:", error);
+      setUserSessions([]);
     } finally {
       setLoading(false);
     }
   };
 
   const handleCreateSession = async () => {
+    if (!userId) {
+      console.error("Cannot create session: No user ID");
+      setError("User not properly initialized. Please refresh the page.");
+      return;
+    }
+
     try {
       setCreatingSession(true);
 

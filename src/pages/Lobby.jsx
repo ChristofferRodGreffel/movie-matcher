@@ -18,18 +18,11 @@ const Lobby = () => {
   const [isHost, setIsHost] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
   const [joining, setJoining] = useState(false);
-  const [userId, setUserId] = useState(null);
 
-  const { getUserId } = useUserStore();
-
-  const handleSetUserId = async (id) => {
-    setUserId(await getUserId());
-  };
+  const { getUserId, userId } = useUserStore();
 
   useEffect(() => {
     initializeLobby();
-
-    handleSetUserId();
 
     // Subscribe to real-time updates for session changes
     const sessionSubscription = supabase
@@ -102,45 +95,57 @@ const Lobby = () => {
   };
 
   const joinSessionIfNeeded = async () => {
-    const userId = await getUserId();
     if (!userId) {
+      console.log("No userId, redirecting to home");
       navigate("/");
       return;
     }
 
     try {
-      // Check if user is already in the session
+      setJoining(true);
+
+      // Check if user is already in the session with better error handling
       const { data: existingParticipant, error: checkError } = await supabase
         .from("session_users")
         .select("id")
         .eq("session_id", sessionId)
         .eq("user_id", userId)
-        .maybeSingle(); // Use maybeSingle() instead of single() to avoid errors when no record found
+        .maybeSingle();
 
       if (checkError) {
         console.error("Error checking participant:", checkError);
         return;
       }
 
-      if (!existingParticipant) {
-        setJoining(true);
-        // Add user to session
-        const { error: insertError } = await supabase.from("session_users").insert({
+      if (existingParticipant) {
+        console.log("User already in session, skipping insert");
+        return;
+      }
+
+      // Use upsert instead of insert to handle conflicts gracefully
+      const { error: insertError } = await supabase.from("session_users").upsert(
+        {
           id: uuidv4(),
           session_id: sessionId,
           user_id: userId,
-        });
-
-        if (insertError) {
-          // Only log if it's not a duplicate key error (which means user already joined)
-          if (insertError.code !== "23505") {
-            console.error("Error joining session:", insertError);
-          }
+        },
+        {
+          onConflict: "session_id,user_id",
+          ignoreDuplicates: true,
         }
-        setJoining(false);
+      );
+
+      if (insertError) {
+        console.error("Error joining session:", insertError);
+        if (!insertError.message.includes("duplicate") && insertError.code !== "23505") {
+          setError("Failed to join session");
+        }
+      } else {
+        console.log("Successfully joined session");
       }
     } catch (err) {
       console.error("Unexpected error in joinSessionIfNeeded:", err);
+    } finally {
       setJoining(false);
     }
   };
@@ -276,8 +281,8 @@ const Lobby = () => {
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto bg-theme-secondary min-h-screen">
-      <div className="bg-theme-primary rounded-lg shadow-lg p-8 border border-theme-primary">
+    <div className="p-6 max-w-6xl mx-auto min-h-screen">
+      <div className="bg-theme-secondary rounded-lg shadow-lg p-8 border border-theme-primary">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-theme-primary mb-6">
@@ -287,11 +292,11 @@ const Lobby = () => {
           {/* Join Methods Section */}
           <div className="grid md:grid-cols-2 gap-8 mb-8">
             {/* QR Code Section */}
-            <div className="bg-theme-surface rounded-lg p-6 border border-theme-primary">
+            <div className="bg-theme-primary rounded-lg p-6 border border-theme-primary">
               <h3 className="text-lg font-semibold text-theme-primary mb-4">Scan to Join</h3>
               {session?.join_code && (
                 <div className="flex justify-center">
-                  <div className="p-4 bg-theme-secondary border border-theme-primary rounded-lg shadow-sm">
+                  <div className="rounded-lg shadow-sm">
                     <QRCode
                       value={`http://192.168.86.55:5173/join?code=${session.join_code}`}
                       size={160}
@@ -304,17 +309,19 @@ const Lobby = () => {
             </div>
 
             {/* Join Code Section */}
-            <div className="bg-theme-surface rounded-lg p-6 border border-theme-primary">
+            <div className="bg-theme-primary rounded-lg p-6 border border-theme-primary">
               <h3 className="text-lg font-semibold text-theme-primary mb-4">Use Join Code</h3>
               <div className="flex flex-col items-center gap-4">
                 <div
                   onClick={copyJoinCode}
-                  className="px-6 py-4 border-2 border-dashed border-blue-300 dark:border-blue-600 select-none rounded-lg bg-blue-50 dark:bg-blue-900/30 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors w-full max-w-xs touch-manipulation"
+                  className="px-6 py-4 border-2 border-dashed border-theme-primary select-none rounded-lg cursor-pointer transition-colors w-full max-w-xs touch-manipulation"
                 >
-                  <div className="font-mono font-bold text-2xl text-blue-600 tracking-wider text-center">
+                  <div className="font-mono font-bold text-2xl text-theme-primary tracking-wider text-center">
                     {session?.join_code}
                   </div>
-                  <div className="text-sm text-blue-500 mt-2 text-center">{copiedCode ? "Copied!" : "Tap to copy"}</div>
+                  <div className="text-sm text-theme-primary mt-2 text-center">
+                    {copiedCode ? "Copied!" : "Tap to copy"}
+                  </div>
                 </div>
                 <p className="text-sm text-theme-secondary text-center">
                   Share this code with others or visit the join page
@@ -327,15 +334,13 @@ const Lobby = () => {
         {/* Host Message */}
         {isHost && (
           <div className="mb-8">
-            <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-6 text-center">
-              <h2 className="text-xl font-semibold text-blue-800 dark:text-blue-300 mb-2">You're the Host!</h2>
-              <p className="text-blue-600 dark:text-blue-400 mb-4">
+            <div className="bg-theme-primary text-theme-primary border border-theme-primary rounded-lg p-6 text-center">
+              <h2 className="text-xl font-semibold mb-2">You're the Host!</h2>
+              <p className=" mb-4">
                 Share the QR code or join code <strong>{session?.join_code}</strong> with others to let them join your
                 session.
               </p>
-              <p className="text-sm text-blue-500 dark:text-blue-400">
-                Once everyone has joined, you can start configuring the session.
-              </p>
+              <p className="text-sm">Once everyone has joined, you can start configuring the session.</p>
             </div>
           </div>
         )}

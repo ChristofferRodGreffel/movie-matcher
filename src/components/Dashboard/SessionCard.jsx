@@ -10,19 +10,19 @@ const SessionCard = ({ session, formatDate, getStatusColor, copiedCode, copyJoin
   return (
     <div
       key={session.id}
-      className="bg-gray-50 border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
+      className="bg-theme-secondary text-theme-primary border border-theme-primary rounded-lg p-6 hover:shadow-md transition-shadow"
     >
       <div className="flex items-start justify-between mb-4">
         <div>
-          <h3 className="font-semibold text-gray-800 mb-1">Session {session.id.slice(0, 8)}...</h3>
-          <p className="text-sm text-gray-500">Created {formatDate(session.created_at)}</p>
+          <h3 className="font-semibold mb-1">Session {session.id.slice(0, 8)}...</h3>
+          <p className="text-sm">Created {formatDate(session.created_at)}</p>
         </div>
         <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(session.status)}`}>
           {session.status}
         </span>
       </div>
 
-      <div className="mb-4 text-sm text-gray-600">
+      <div className="mb-4 text-sm">
         <div
           onClick={() => copyJoinCode(session.join_code)}
           className="relative mb-3 p-3 border-2 border-dashed border-blue-300 rounded-lg bg-blue-50 cursor-pointer hover:bg-blue-100 transition-colors group"
@@ -41,9 +41,9 @@ const SessionCard = ({ session, formatDate, getStatusColor, copiedCode, copyJoin
       <div className="flex gap-2">
         <Link
           to={`${sessionLink[session.status]}`}
-          className="flex-1 px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors text-center"
+          className="flex-1 px-3 py-2 bg-theme-accent text-white text-sm rounded hover:bg-theme-accent-hover transition-colors text-center"
         >
-          Open
+          Join
         </Link>
         <button
           onClick={() => deleteSession(session.id)}

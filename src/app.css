@@ -1,6 +1,10 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
+:root {
+  overflow-x: hidden; /* Prevent horizontal overflow */
+}
+
 html {
   background-color: rgb(var(--color-bg-primary));
 }
@@ -9,8 +13,8 @@ html {
   --color-bg-primary: 250 250 250; /* neutral-50 */
   --color-bg-secondary: 255 255 255; /* white */
   --color-bg-tertiary: 245 245 245; /* neutral-100 */
-  --color-bg-accent: 139 92 246; /* purple-600 */
-  --color-bg-accent-hover: 124 58 237; /* purple-700 */
+  --color-bg-accent: 100 0 168; /* purple-700 */
+  --color-bg-accent-hover: 130 0 219; /* purple-700 */
 
   --color-text-primary: 64 64 64; /* neutral-700 */
   --color-text-secondary: 115 115 115; /* neutral-500 */
@@ -28,8 +32,8 @@ html {
   --color-bg-primary: 23 23 23; /* neutral-900 */
   --color-bg-secondary: 38 38 38; /* neutral-800 */
   --color-bg-tertiary: 64 64 64; /* neutral-700 */
-  --color-bg-accent: 139 92 246; /* purple-600 */
-  --color-bg-accent-hover: 124 58 237; /* purple-700 */
+  --color-bg-accent: 100 0 168; /* purple-700 */
+  --color-bg-accent-hover: 130 0 219; /* purple-700 */
 
   --color-text-primary: 245 245 245; /* neutral-100 */
   --color-text-secondary: 212 212 212; /* neutral-300 */
@@ -53,6 +57,12 @@ html {
   }
   .bg-theme-surface {
     background-color: rgb(var(--color-surface));
+  }
+  .bg-theme-accent {
+    background-color: rgb(var(--color-bg-accent));
+  }
+  .bg-theme-accent:hover {
+    background-color: rgb(var(--color-bg-accent-hover));
   }
 
   .text-theme-primary {
@@ -85,4 +95,35 @@ html {
   .bg-theme-link-light {
     background-color: rgb(139 92 246 / 0.2); /* purple-600 with 20% opacity for dark mode */
   }
+}
+
+/* Custom scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgb(var(--color-bg-tertiary));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--color-text-tertiary));
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--color-text-secondary));
+}
+
+::-webkit-scrollbar-corner {
+  background: rgb(var(--color-bg-tertiary));
+}
+
+/* Firefox scrollbar styling */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--color-text-tertiary)) rgb(var(--color-bg-tertiary));
 }

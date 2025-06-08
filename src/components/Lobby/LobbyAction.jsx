@@ -1,6 +1,7 @@
 import React from "react";
 
 const LobbyActions = ({ isHost, participantCount, onLeaveSession, onStartSession }) => {
+  console.log("participantCount:", participantCount);
   return (
     <>
       <div className="flex justify-between items-center">
@@ -14,11 +15,9 @@ const LobbyActions = ({ isHost, participantCount, onLeaveSession, onStartSession
         {isHost && (
           <button
             onClick={onStartSession}
-            disabled={participantCount < 1}
-            className={`px-4 py-2 rounded-lg font-semibold transition-colors cursor-pointer ${
-              participantCount < 1
-                ? "bg-gray-400 cursor-not-allowed text-white"
-                : "bg-blue-600 text-white hover:bg-blue-700"
+            disabled={participantCount < 2}
+            className={`px-4 py-2 rounded-lg font-semibold transition-colors cursor-pointer bg-theme-accent text-white ${
+              participantCount < 2 ? "!bg-gray-300 cursor-not-allowed" : "hover:bg-theme-accent-dark"
             }`}
           >
             Start Configuring

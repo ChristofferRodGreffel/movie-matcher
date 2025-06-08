@@ -109,8 +109,8 @@ const JoinSession = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-theme-secondary">
-      <div className="bg-theme-primary rounded-lg shadow-lg p-8 w-full max-w-md border border-theme-primary">
+    <div className="flex flex-col items-center justify-center min-h-screen p-6">
+      <div className="bg-theme-secondary rounded-lg shadow-lg p-8 w-full max-w-md border border-theme-primary">
         <h1 className="text-2xl font-bold text-theme-primary mb-6 text-center">Join Matching Session</h1>
 
         {error && (

@@ -3,6 +3,30 @@ import React, { useState, useEffect } from "react";
 const ThemeToggle = ({ className = "" }) => {
   const [isDark, setIsDark] = useState(false);
 
+  const toggleDarkMode = () => {
+    const darkMode = localStorage.getItem("darkMode");
+    if (darkMode === "true") {
+      localStorage.setItem("darkMode", "false");
+      setIsDark(false);
+    } else {
+      localStorage.setItem("darkMode", "true");
+      setIsDark(true);
+    }
+  };
+
+  const checkDarkMode = () => {
+    const darkMode = localStorage.getItem("darkMode");
+    if (darkMode === "true") {
+      setIsDark(true);
+    } else {
+      setIsDark(false);
+    }
+  };
+
+  useEffect(() => {
+    checkDarkMode();
+  }, []);
+
   useEffect(() => {
     if (isDark) {
       document.documentElement.classList.add("dark");
@@ -13,7 +37,7 @@ const ThemeToggle = ({ className = "" }) => {
 
   return (
     <button
-      onClick={() => setIsDark(!isDark)}
+      onClick={toggleDarkMode}
       className={`relative inline-flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-200 group cursor-pointer ${className}`}
       title={`Switch to ${isDark ? "light" : "dark"} mode`}
     >

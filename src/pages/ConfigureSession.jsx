@@ -1,12 +1,10 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { v4 as uuidv4 } from "uuid";
 import TMDBApi from "../api/tmdb";
-import ProviderCard from "../components/ProviderCard";
-import GenreCard from "../components/GenreCard";
 import LoadingSpinner from "../components/LoadingSpinner";
 import supabase from "../api/supabase";
 import useUserStore from "../stores/userStore";
+import SelectionCard from "../components/Configuring/SelectionCard";
 
 const ConfigureSession = () => {
   const { sessionId } = useParams();
@@ -14,18 +12,18 @@ const ConfigureSession = () => {
   const [session, setSession] = useState(null);
   const [providers, setProviders] = useState([]);
   const [genres, setGenres] = useState([]);
-  const [selectedProviders, setSelectedProviders] = useState([]);
-  const [selectedGenres, setSelectedGenres] = useState([]);
+  const [selectedProviders, setSelectedProviders] = useState([]); // Now array of objects
+  const [selectedGenres, setSelectedGenres] = useState([]); // Change to array of objects
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isHost, setIsHost] = useState(false);
 
-  const { getUserId } = useUserStore();
+  const { getUserId, userId, username } = useUserStore(); // Get username too
 
   useEffect(() => {
     initializeSession();
 
-    // Subscribe to real-time changes for collaborative editing
+    // Subscribe to real-time changes for collaborative editing AND status changes
     const subscription = supabase
       .channel(`session_config_${sessionId}`)
       .on(
@@ -38,15 +36,30 @@ const ConfigureSession = () => {
         },
         (payload) => {
           if (payload.new) {
-            setSelectedProviders(payload.new.platform_ids || []);
-            setSelectedGenres(payload.new.genre_ids || []);
+            // Update collaborative config with new format
+            setSelectedProviders(
+              payload.new.platform_selections ||
+                payload.new.platform_ids?.map((id) => ({ provider_id: id, selected_by: null })) ||
+                []
+            );
+            setSelectedGenres(
+              payload.new.genre_selections ||
+                payload.new.genre_ids?.map((id) => ({ genre_id: id, selected_by: null })) ||
+                []
+            );
+
+            // Auto-navigate when status changes to matching
+            if (payload.new.status === "matching") {
+              console.log("Status changed to matching - navigating to session page");
+              navigate(`/session/${sessionId}`);
+            }
           }
         }
       )
       .subscribe();
 
     return () => subscription.unsubscribe();
-  }, [sessionId]);
+  }, [sessionId, navigate]);
 
   const initializeSession = async () => {
     try {
@@ -77,8 +90,15 @@ const ConfigureSession = () => {
       }
 
       setSession(data);
-      setSelectedProviders(data.platform_ids || []);
-      setSelectedGenres(data.genre_ids || []);
+      // Handle new format or legacy format for providers
+      setSelectedProviders(
+        data.platform_selections || data.platform_ids?.map((id) => ({ provider_id: id, selected_by: null })) || []
+      );
+
+      // Handle new format or legacy format for genres
+      setSelectedGenres(
+        data.genre_selections || data.genre_ids?.map((id) => ({ genre_id: id, selected_by: null })) || []
+      );
     } catch (err) {
       setError("Failed to load session");
     }
@@ -103,46 +123,106 @@ const ConfigureSession = () => {
 
   // Collaborative provider toggling - any participant can add/remove
   const toggleProvider = async (providerId) => {
-    // Update local state immediately for responsive UI
-    const newProviders = selectedProviders.includes(providerId)
-      ? selectedProviders.filter((id) => id !== providerId)
-      : [...selectedProviders, providerId];
+    // Check if this provider is already selected
+    const existingSelection = selectedProviders.find((p) => p.provider_id === providerId);
+
+    let newProviders;
+    if (existingSelection) {
+      // Remove if already selected
+      newProviders = selectedProviders.filter((p) => p.provider_id !== providerId);
+    } else {
+      // Add new selection with user info
+      newProviders = [
+        ...selectedProviders,
+        {
+          provider_id: providerId,
+          selected_by: userId,
+          username: username,
+          selected_at: new Date().toISOString(),
+        },
+      ];
+    }
 
     setSelectedProviders(newProviders);
 
-    // Update database - all participants can modify
+    // Update database with new format
     try {
-      const { error } = await supabase.from("sessions").update({ platform_ids: newProviders }).eq("id", sessionId);
+      const { error } = await supabase
+        .from("sessions")
+        .update({
+          platform_selections: newProviders,
+          // Keep legacy format for backward compatibility
+          platform_ids: newProviders.map((p) => p.provider_id),
+        })
+        .eq("id", sessionId);
 
       if (error) throw error;
     } catch (err) {
       console.error("Error updating providers:", err);
-      // Revert on error
       setSelectedProviders(selectedProviders);
       alert("Failed to update providers. Please try again.");
     }
   };
 
+  // Helper function to check if a provider is selected
+  const isProviderSelected = (providerId) => {
+    return selectedProviders.some((p) => p.provider_id === providerId);
+  };
+
+  // Helper function to get who selected a provider
+  const getProviderSelection = (providerId) => {
+    return selectedProviders.find((p) => p.provider_id === providerId);
+  };
+
   // Collaborative genre toggling - any participant can add/remove
   const toggleGenre = async (genreId) => {
-    // Update local state immediately for responsive UI
-    const newGenres = selectedGenres.includes(genreId)
-      ? selectedGenres.filter((id) => id !== genreId)
-      : [...selectedGenres, genreId];
+    const existingSelection = selectedGenres.find((g) => g.genre_id === genreId);
+
+    let newGenres;
+    if (existingSelection) {
+      // Remove if already selected
+      newGenres = selectedGenres.filter((g) => g.genre_id !== genreId);
+    } else {
+      // Add new selection with user info
+      newGenres = [
+        ...selectedGenres,
+        {
+          genre_id: genreId,
+          selected_by: userId,
+          username: username,
+          selected_at: new Date().toISOString(),
+        },
+      ];
+    }
 
     setSelectedGenres(newGenres);
 
-    // Update database - all participants can modify
+    // Update database with new format
     try {
-      const { error } = await supabase.from("sessions").update({ genre_ids: newGenres }).eq("id", sessionId);
+      const { error } = await supabase
+        .from("sessions")
+        .update({
+          genre_selections: newGenres,
+          // Keep legacy format for backward compatibility
+          genre_ids: newGenres.map((g) => g.genre_id),
+        })
+        .eq("id", sessionId);
 
       if (error) throw error;
     } catch (err) {
       console.error("Error updating genres:", err);
-      // Revert on error
       setSelectedGenres(selectedGenres);
       alert("Failed to update genres. Please try again.");
     }
+  };
+
+  // Add helper functions for genres
+  const isGenreSelected = (genreId) => {
+    return selectedGenres.some((g) => g.genre_id === genreId);
+  };
+
+  const getGenreSelection = (genreId) => {
+    return selectedGenres.find((g) => g.genre_id === genreId);
   };
 
   const startMatching = async () => {
@@ -195,29 +275,23 @@ const ConfigureSession = () => {
         <div className="text-sm text-gray-600">🤝 Everyone can add/remove options</div>
       </div>
 
-      {/* Collaborative info banner */}
-      <div className="mb-6 p-4 bg-theme-secondary border border-theme-link rounded-lg">
-        <p className="text-theme-primary">
-          <strong>Collaborative Configuration:</strong> Everyone in the session can add or remove streaming providers
-          and genres.
-          {isHost
-            ? " As the host, you can start matching when ready."
-            : " The host will start matching when everyone is ready."}
-        </p>
-      </div>
-
       <div className="mb-8">
         <h3 className="text-xl text-theme-primary font-semibold mb-4">Select Streaming Providers</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          {providers.map((provider) => (
-            <ProviderCard
-              key={provider.provider_id}
-              provider={provider}
-              isSelected={selectedProviders.includes(provider.provider_id)}
-              onToggle={toggleProvider}
-              // No disabled prop - everyone can interact
-            />
-          ))}
+          {providers.map((provider) => {
+            const selection = getProviderSelection(provider.provider_id);
+            return (
+              <SelectionCard
+                key={provider.provider_id}
+                item={provider}
+                type="provider"
+                isSelected={isProviderSelected(provider.provider_id)}
+                onToggle={toggleProvider}
+                selectedBy={selection?.selected_by}
+                currentUserId={userId}
+              />
+            );
+          })}
         </div>
         <p className="mt-3 text-sm text-gray-600">Selected: {selectedProviders.length} providers</p>
       </div>
@@ -225,15 +299,20 @@ const ConfigureSession = () => {
       <div className="mb-8">
         <h3 className="text-xl text-theme-primary font-semibold mb-4">Select Genres</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-          {genres.map((genre) => (
-            <GenreCard
-              key={genre.id}
-              genre={genre}
-              isSelected={selectedGenres.includes(genre.id)}
-              onToggle={toggleGenre}
-              // No disabled prop - everyone can interact
-            />
-          ))}
+          {genres.map((genre) => {
+            const selection = getGenreSelection(genre.id);
+            return (
+              <SelectionCard
+                key={genre.id}
+                item={genre}
+                type="genre"
+                isSelected={isGenreSelected(genre.id)}
+                onToggle={toggleGenre}
+                selectedBy={selection?.selected_by}
+                currentUserId={userId}
+              />
+            );
+          })}
         </div>
         <p className="mt-3 text-sm text-gray-600">Selected: {selectedGenres.length} genres</p>
       </div>
@@ -258,9 +337,14 @@ const ConfigureSession = () => {
         </div>
       ) : (
         <div className="flex justify-center mt-8">
-          <div className="text-gray-500 text-center">
-            <p>Waiting for the host to start matching...</p>
-            <p className="text-sm mt-1">Keep adding providers and genres that you'd like!</p>
+          <div className="text-gray-500 text-center p-6 bg-gray-50 rounded-lg">
+            <div className="mb-3">
+              <div className="inline-flex gap-1.5 items-center">
+                <LoadingSpinner />
+                <span>Waiting for the host to start matching...</span>
+              </div>
+            </div>
+            <p className="text-xs mt-2 text-gray-400">You'll be automatically redirected when matching begins</p>
           </div>
         </div>
       )}

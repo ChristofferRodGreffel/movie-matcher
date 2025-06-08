@@ -13,7 +13,7 @@ const Dashboard = () => {
   const [copiedCode, setCopiedCode] = useState(null);
   const navigate = useNavigate();
 
-  const { getUserId, user, userId, username } = useUserStore();
+  const { getUserId, userId, username, clearUser } = useUserStore();
 
   useEffect(() => {
     loadDashboardData();
@@ -108,6 +108,68 @@ const Dashboard = () => {
     }
   };
 
+  const deleteUserAccount = async () => {
+    const confirmMessage =
+      "Are you sure you want to permanently delete your account? This action cannot be undone and will remove all your data including:\n\n• All your sessions\n• Your user profile\n• All session participations\n\nType 'DELETE' to confirm:";
+
+    const confirmation = prompt(confirmMessage);
+    if (confirmation !== "DELETE") return;
+
+    try {
+      setLoading(true);
+
+      if (!userId) {
+        throw new Error("User not found");
+      }
+
+      // Step 1: Delete all sessions owned by this user
+      const { error: sessionsError } = await supabase.from("sessions").delete().eq("owner_id", userId);
+
+      if (sessionsError) {
+        console.error("Error deleting user sessions:", sessionsError);
+        throw new Error("Failed to delete user sessions");
+      }
+
+      // Step 2: Remove user from any session_users relationships
+      const { error: sessionUsersError } = await supabase.from("session_users").delete().eq("user_id", userId);
+
+      if (sessionUsersError) {
+        console.error("Error removing user from sessions:", sessionUsersError);
+        throw new Error("Failed to remove user from sessions");
+      }
+
+      // Step 3: Delete any responses by this user
+      const { error: responsesError } = await supabase.from("responses").delete().eq("user_id", userId);
+
+      if (responsesError) {
+        console.error("Error deleting user responses:", responsesError);
+        throw new Error("Failed to delete user responses");
+      }
+
+      // Step 4: Finally delete the user profile
+      const { error: userError } = await supabase.from("users").delete().eq("id", userId);
+
+      if (userError) {
+        console.error("Error deleting user:", userError);
+        throw new Error("Failed to delete user account");
+      }
+
+      // Clear all localStorage data
+      localStorage.clear();
+
+      // Clear user store
+      clearUser();
+
+      alert("Your account has been successfully deleted.");
+      navigate("/");
+    } catch (err) {
+      console.error("Error deleting account:", err);
+      alert(`Failed to delete account: ${err.message}. Please try again or contact support.`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case "waiting":
@@ -149,31 +211,40 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto bg-theme-secondary min-h-screen">
+    <div className="p-6 max-w-6xl mx-auto min-h-screen">
       {/* User Profile Section */}
-      <div className="bg-theme-primary rounded-lg shadow-sm p-6 mb-8 border border-theme-primary">
-        <div className="flex flex-wrap items-center gap-4">
-          <ProfileAvatar id={userId} size="16" />
-          <div>
-            <h1 className="text-2xl font-bold text-theme-primary">Welcome back, {username || "User"}!</h1>
-            <p className="text-theme-secondary">Manage your movie matching sessions</p>
+      <div className="bg-theme-secondary rounded-lg shadow-sm p-6 mb-8 border border-theme-primary">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <ProfileAvatar id={userId} size="16" />
+            <div>
+              <h1 className="text-2xl font-bold text-theme-primary">Welcome back, {username || "User"}!</h1>
+              <p className="text-theme-secondary">Manage your movie matching sessions</p>
+            </div>
           </div>
+          <button
+            onClick={deleteUserAccount}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+            disabled={loading}
+          >
+            Delete Account
+          </button>
         </div>
       </div>
 
       {/* Dashboard Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-theme-primary rounded-lg shadow-sm p-6 border border-theme-primary">
+        <div className="bg-theme-secondary rounded-lg shadow-sm p-6 border border-theme-primary">
           <div className="text-2xl font-bold text-blue-600">{sessions.length}</div>
           <div className="text-sm text-theme-secondary">Total Sessions</div>
         </div>
-        <div className="bg-theme-primary rounded-lg shadow-sm p-6 border border-theme-primary">
+        <div className="bg-theme-secondary rounded-lg shadow-sm p-6 border border-theme-primary">
           <div className="text-2xl font-bold text-green-600">
             {sessions.filter((s) => s.status === "completed").length}
           </div>
           <div className="text-sm text-theme-secondary">Completed Sessions</div>
         </div>
-        <div className="bg-theme-primary rounded-lg shadow-sm p-6 border border-theme-primary">
+        <div className="bg-theme-secondary rounded-lg shadow-sm p-6 border border-theme-primary">
           <div className="text-2xl font-bold text-purple-600">
             {sessions.filter((s) => s.status === "matching").length}
           </div>
@@ -182,13 +253,13 @@ const Dashboard = () => {
       </div>
 
       {/* Sessions Section */}
-      <div className="bg-theme-primary rounded-lg shadow-sm p-6 border border-theme-primary">
+      <div className="bg-theme-secondary rounded-lg shadow-sm p-6 border border-theme-primary">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold text-theme-primary">Your Sessions</h2>
-          <div className="flex gap-3">
+          <div className="hidden md:flex gap-3">
             <Link
               to="/"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+              className="px-4 py-2 bg-theme-accent text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
             >
               Create Session
             </Link>
@@ -208,15 +279,12 @@ const Dashboard = () => {
               Get started by creating your first session or joining an existing one.
             </p>
             <div className="flex justify-center gap-4">
-              <Link
-                to="/"
-                className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
+              <Link to="/" className="inline-block px-6 py-3 bg-theme-accent text-white rounded-lg transition-colors">
                 Create Your First Session
               </Link>
               <Link
                 to="/join"
-                className="inline-block px-6 py-3 bg-theme-surface text-theme-secondary rounded-lg hover:bg-theme-surface/70 transition-colors border border-theme-primary"
+                className="inline-block px-6 py-3 bg-theme-surface text-theme-secondary rounded-lg  transition-colors border border-theme-primary"
               >
                 Join an Existing Session
               </Link>

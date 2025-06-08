@@ -39,8 +39,18 @@ class TMDBApi {
   }
 
   static async discoverMovies(params = {}) {
-    const queryParams = new URLSearchParams(params).toString();
-    return this.request(`/discover/movie?${queryParams}`);
+    // Handle both object and URLSearchParams
+    let queryString = "";
+
+    if (params instanceof URLSearchParams) {
+      queryString = params.toString();
+    } else if (typeof params === "object") {
+      queryString = new URLSearchParams(params).toString();
+    } else {
+      queryString = params; // Assume it's already a string
+    }
+
+    return this.request(`/discover/movie?${queryString}`);
   }
 }
 
