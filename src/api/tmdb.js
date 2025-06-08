@@ -30,6 +30,10 @@ class TMDBApi {
     return this.request(`/watch/providers/movie?language=${language}&watch_region=${region}`);
   }
 
+  static async getMovieProviders(movieId) {
+    return this.request(`/movie/${movieId}/watch/providers`);
+  }
+
   static async getGenres(language = "da-DK") {
     return this.request(`/genre/movie/list?language=${language}`);
   }

@@ -1,0 +1,4 @@
+[[redirects]]
+from="/*"
+to="https://movie-matcher.netlify.app/"
+status=200

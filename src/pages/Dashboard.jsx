@@ -216,7 +216,9 @@ const Dashboard = () => {
       <div className="bg-theme-secondary rounded-lg shadow-sm p-6 mb-8 border border-theme-primary">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <ProfileAvatar id={userId} size="16" />
+            <div>
+              <ProfileAvatar id={userId} size="16" />
+            </div>
             <div>
               <h1 className="text-2xl font-bold text-theme-primary">Welcome back, {username || "User"}!</h1>
               <p className="text-theme-secondary">Manage your movie matching sessions</p>

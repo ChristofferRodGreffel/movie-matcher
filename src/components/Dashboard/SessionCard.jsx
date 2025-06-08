@@ -25,12 +25,12 @@ const SessionCard = ({ session, formatDate, getStatusColor, copiedCode, copyJoin
       <div className="mb-4 text-sm">
         <div
           onClick={() => copyJoinCode(session.join_code)}
-          className="relative mb-3 p-3 border-2 border-dashed border-blue-300 rounded-lg bg-blue-50 cursor-pointer hover:bg-blue-100 transition-colors group"
+          className="relative mb-3 p-3 border-2 border-dashed border-theme-primary rounded-lg cursor-pointer transition-colors group"
         >
-          <div className="font-mono font-bold text-lg text-blue-600 text-center tracking-wider">
+          <div className="font-mono font-bold text-lg text-theme-primary text-center tracking-wider">
             {session.join_code}
           </div>
-          <div className="text-xs text-blue-500 text-center mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="text-xs text-theme-primary text-center mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
             {copiedCode === session.join_code ? "Copied!" : "Click to copy"}
           </div>
         </div>

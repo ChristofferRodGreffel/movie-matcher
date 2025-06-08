@@ -6,12 +6,15 @@ import { useSession } from "../hooks/useSession";
 import supabase from "../api/supabase";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { AiFillDislike, AiFillLike } from "react-icons/ai";
+import TMDBApi from "../api/tmdb";
+import toast from "react-hot-toast";
 
 const Session = () => {
   const [isHost, setIsHost] = useState(false);
   const [matches, setMatches] = useState([]);
-  const [showMatchNotification, setShowMatchNotification] = useState(false);
+  const [matchProviders, setMatchProviders] = useState({}); // Add this state
   const [newMatch, setNewMatch] = useState(null);
+  const [showAllMatches, setShowAllMatches] = useState(false);
   const buttonVoteRef = useRef(null);
 
   const { sessionId } = useParams();
@@ -24,8 +27,47 @@ const Session = () => {
     setIsHost(hostStatus === "true");
   }, [sessionId]);
 
+  // Add function to fetch providers for matches
+  const fetchProvidersForMatches = async (movieMatches) => {
+    const providerPromises = movieMatches.map(async (match) => {
+      try {
+        const providers = await TMDBApi.getMovieProviders(match.id);
+
+        // Get DK providers, fallback to US if DK not available
+        const regionData = providers?.results?.DK || providers?.results?.US || {};
+
+        return {
+          movieId: match.id,
+          providers: {
+            flatrate: regionData.flatrate || [],
+            rent: regionData.rent || [],
+            buy: regionData.buy || [],
+          },
+        };
+      } catch (error) {
+        console.error(`Error fetching providers for movie ${match.id}:`, error);
+        return {
+          movieId: match.id,
+          providers: {
+            flatrate: [],
+            rent: [],
+            buy: [],
+          },
+        };
+      }
+    });
+
+    const results = await Promise.all(providerPromises);
+    const providersMap = {};
+    results.forEach(({ movieId, providers }) => {
+      providersMap[movieId] = providers;
+    });
+
+    setMatchProviders(providersMap);
+  };
+
   // Fetch session matches
-  const fetchMatches = async () => {
+  const fetchMatches = async (isInitialFetch = false) => {
     try {
       const { data: session, error } = await supabase.from("sessions").select("matches").eq("id", sessionId).single();
 
@@ -37,34 +79,43 @@ const Session = () => {
       const matchIds = session.matches || [];
 
       if (matchIds.length > matches.length) {
-        // Get movie details for the new matches
-        const movieDetails = await Promise.all(
-          matchIds.map(async (movieId) => {
-            // Fetch movie details from your movies data or TMDB
-            const matchedMovie = movies.find((m) => m.id === movieId);
-            return {
-              id: movieId,
-              title: matchedMovie?.title || `Movie ${movieId}`,
-              poster_path: matchedMovie?.poster_path,
-            };
-          })
-        );
+        // Get movie details from session_movies table
+        const { data: sessionMovies, error: moviesError } = await supabase
+          .from("session_movies")
+          .select("*")
+          .eq("session_id", sessionId)
+          .in("movie_id", matchIds);
 
-        // Show notification for the newest match
-        if (matchIds.length > matches.length) {
+        if (moviesError) {
+          console.error("Error fetching session movies:", moviesError);
+          return;
+        }
+
+        // Map the movie details
+        const movieDetails = matchIds.map((movieId) => {
+          const sessionMovie = sessionMovies.find((sm) => sm.movie_id === movieId);
+          return {
+            id: movieId,
+            title: sessionMovie?.title || `Movie ${movieId}`,
+            poster_path: sessionMovie?.poster_path,
+            overview: sessionMovie?.overview,
+            release_date: sessionMovie?.release_date,
+            vote_average: sessionMovie?.vote_average,
+            genre_ids: sessionMovie?.genre_ids,
+          };
+        });
+
+        // Show notification for the newest match (only for real-time updates, not initial fetch)
+        if (matchIds.length > matches.length && !isInitialFetch) {
           const newestMatchId = matchIds[matchIds.length - 1];
           const newestMatch = movieDetails.find((m) => m.id === newestMatchId);
 
-          setNewMatch(newestMatch);
-          setShowMatchNotification(true);
-
-          // Auto-hide notification after 5 seconds
-          setTimeout(() => {
-            setShowMatchNotification(false);
-          }, 5000);
+          toast.success(`Nyt match: ${newestMatch.title}`);
         }
 
         setMatches(movieDetails);
+        // Fetch providers for the matches
+        fetchProvidersForMatches(movieDetails);
       }
     } catch (error) {
       console.error("Error fetching matches:", error);
@@ -74,7 +125,7 @@ const Session = () => {
   // Listen for match updates
   useEffect(() => {
     // Initial fetch
-    fetchMatches();
+    fetchMatches(true);
 
     // Set up real-time subscription for session updates
     const subscription = supabase
@@ -89,7 +140,7 @@ const Session = () => {
         },
         (payload) => {
           console.log("Session updated:", payload);
-          fetchMatches();
+          fetchMatches(false);
         }
       )
       .subscribe();
@@ -99,46 +150,139 @@ const Session = () => {
     };
   }, [sessionId, matches.length, movies]);
 
-  const dismissNotification = () => {
-    setShowMatchNotification(false);
-  };
-
   return (
-    <div className="min-h-screen bg-theme-primary py-8">
+    <div className="h-[calc(100vh-80px)] bg-theme-primary py-8">
       <div className="container mx-auto px-4">
-        {/* Match Notification */}
-        {showMatchNotification && newMatch && (
-          <div className="fixed top-4 right-4 z-50 bg-green-500 text-white p-4 rounded-lg shadow-lg max-w-sm animate-bounce">
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="font-bold text-lg mb-2">🎉 It's a Match!</h3>
-                <p className="text-sm mb-2">Everyone liked:</p>
-                <p className="font-semibold">{newMatch.title}</p>
+        {/* All Matches Modal */}
+        {showAllMatches && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="bg-theme-secondary rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
+              <div className="sticky top-0 bg-theme-secondary rounded-t-2xl border-b p-6 flex justify-between items-center flex-shrink-0">
+                <h2 className="text-2xl font-bold text-theme-primary flex items-center">
+                  🎬 Alle matches ({matches.length})
+                </h2>
+                <button
+                  onClick={() => setShowAllMatches(false)}
+                  className="cursor-pointer text-theme-primary text-2xl font-bold"
+                >
+                  ✕
+                </button>
               </div>
-              <button onClick={dismissNotification} className="ml-2 text-white hover:text-gray-200 text-lg">
-                ✕
-              </button>
+              <div className="p-6 overflow-y-auto flex-1">
+                {matches.length > 0 ? (
+                  <div className="grid gap-4">
+                    {matches.map((match) => (
+                      <div
+                        key={match.id}
+                        className="bg-theme-primary border-theme-primary border rounded-xl p-4 hover:shadow-md transition-shadow"
+                      >
+                        <div className="flex items-start gap-5">
+                          {match.poster_path && (
+                            <img
+                              src={`https://image.tmdb.org/t/p/w154${match.poster_path}`}
+                              alt={match.title}
+                              className="w-16 h-24 object-cover rounded-lg shadow-sm"
+                            />
+                          )}
+                          <div className="flex-1">
+                            <h3 className="font-bold text-lg text-theme-primary mb-1">{match.title}</h3>
+                            <div className="flex flex-wrap gap-1">
+                              {matchProviders[match.id] ? (
+                                <div className="flex flex-wrap gap-2">
+                                  {console.log("Match Provider:", matchProviders[match.id])}
+                                  {/* Show flatrate (subscription) providers */}
+                                  {matchProviders[match.id].flatrate?.map((provider) => (
+                                    <div
+                                      key={`flatrate-${provider.provider_id}`}
+                                      className="flex items-center rounded-full text-xs font-medium"
+                                    >
+                                      {provider.logo_path && (
+                                        <img
+                                          src={`https://image.tmdb.org/t/p/w92${provider.logo_path}`}
+                                          alt={provider.provider_name}
+                                          className="w-8 h-8 rounded-md"
+                                        />
+                                      )}
+                                    </div>
+                                  ))}
+
+                                  {/* {matchProviders[match.id].rent?.map((provider) => (
+                                    <div
+                                      key={`rent-${provider.provider_id}`}
+                                      className="flex items-center bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium"
+                                    >
+                                      {provider.logo_path && (
+                                        <img
+                                          src={`https://image.tmdb.org/t/p/w45${provider.logo_path}`}
+                                          alt={provider.provider_name}
+                                          className="w-4 h-4 rounded mr-1"
+                                        />
+                                      )}
+                                      <span>{provider.provider_name}</span>
+                                    </div>
+                                  ))}
+
+                                  {matchProviders[match.id].buy?.map((provider) => (
+                                    <div
+                                      key={`buy-${provider.provider_id}`}
+                                      className="flex items-center bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium"
+                                    >
+                                      {provider.logo_path && (
+                                        <img
+                                          src={`https://image.tmdb.org/t/p/w45${provider.logo_path}`}
+                                          alt={provider.provider_name}
+                                          className="w-4 h-4 rounded mr-1"
+                                        />
+                                      )}
+                                      <span>{provider.provider_name}</span>
+                                    </div>
+                                  ))} */}
+
+                                  {/* If no providers in any category */}
+                                  {!matchProviders[match.id].flatrate &&
+                                    !matchProviders[match.id].rent &&
+                                    !matchProviders[match.id].buy && (
+                                      <span className="text-gray-500 text-xs">No streaming providers available</span>
+                                    )}
+                                </div>
+                              ) : (
+                                <span className="text-gray-500 text-xs">Loading providers...</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="text-6xl mb-4">🎭</div>
+                    <p className="text-gray-600 text-lg">No matches yet. Keep swiping!</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
-
         <div className="text-center text-theme-primary mb-8">
-          <h1 className="text-3xl font-bold mb-2">Now Matching</h1>
-
-          {/* Match Counter */}
-          {matches.length > 0 && (
-            <div className="mt-4">
-              <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
-                {matches.length} match{matches.length !== 1 ? "es" : ""} found ✨
-              </span>
-            </div>
-          )}
+          {/* Enhanced Match Counter and Controls */}
+          <div className="flex flex-col items-center space-y-4">
+            {matches.length > 0 && (
+              <>
+                <button
+                  onClick={() => setShowAllMatches(true)}
+                  className="cursor-pointer bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-full font-medium transition-colors shadow-lg hover:shadow-xl"
+                >
+                  Se matches ({matches.length})
+                </button>
+              </>
+            )}
+          </div>
         </div>
-
         {currentMovie ? (
           <div className="flex flex-col items-center min-h-[600px] relative">
             {/* Cards Stack */}
-            <div className="flex justify-center relative">
+            <div className="flex justify-center relative mb-8">
               {/* Show up to 3 cards stacked */}
               {movies.slice(currentMovieIndex, currentMovieIndex + 3).map((movie, index) => (
                 <MovieCard
@@ -158,70 +302,84 @@ const Session = () => {
               ))}
             </div>
 
-            {/* Action Buttons Container - Pill shaped */}
-            <div className="fixed bottom-10  z-10 bg-theme-secondary rounded-full drop-shadow-2xl shadow-lg p-2 flex space-x-4 mt-8">
+            {/* Enhanced Action Buttons Container */}
+            <div className="fixed bottom-10 z-10 bg-theme-secondary rounded-full drop-shadow-2xl shadow-xl p-3 flex space-x-3 border border-theme-primary">
               <button
-                className="cursor-pointer bg-red-500 hover:bg-red-600 text-white p-4 rounded-full shadow-lg transition-colors flex items-center space-x-2"
+                className="cursor-pointer bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-6 py-4 rounded-full shadow-lg transition-all duration-200 transform hover:scale-105 flex items-center space-x-2"
                 onClick={() => buttonVoteRef.current?.("dislike")}
               >
                 <AiFillDislike className="text-xl" />
-                <span className="text-sm font-medium">Pass</span>
+                <span className="text-sm font-bold">Pass</span>
               </button>
               <button
-                className="cursor-pointer bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-lg transition-colors flex items-center space-x-2"
+                className="cursor-pointer bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-6 py-4 rounded-full shadow-lg transition-all duration-200 transform hover:scale-105 flex items-center space-x-2"
                 onClick={() => buttonVoteRef.current?.("like")}
               >
                 <AiFillLike className="text-xl" />
-                <span className="text-sm font-medium">Like</span>
+                <span className="text-sm font-bold">Watch</span>
               </button>
             </div>
           </div>
         ) : (
           <div className="text-center">
             {movies.length === 0 ? (
-              <div className="text-xl m-auto text-gray-600">
+              <div className="text-xl m-auto text-theme-primary">
                 {isHost ? (
-                  <>
+                  <div className="bg-primary rounded-2xl p-8 shadow-lg max-w-md mx-auto">
                     <LoadingSpinner />
-                    <p>Fetching movies...</p>
-                  </>
+                    <p className="mt-4 font-medium">Fetching movies...</p>
+                  </div>
                 ) : (
-                  <>
+                  <div className="bg-primary rounded-2xl p-8 shadow-lg max-w-md mx-auto">
                     <LoadingSpinner />
-                    <p>Waiting for host to prepare movies...</p>
-                  </>
+                    <p className="mt-4 font-medium">Waiting for host to prepare movies...</p>
+                  </div>
                 )}
               </div>
             ) : (
               <div>
-                <p className="text-xl text-gray-600 mb-4">No more movies to show!</p>
+                <div className="text-6xl mb-6">🎬</div>
+                <p className="text-2xl text-gray-700 mb-8 font-medium">All done!</p>
                 {matches.length > 0 ? (
-                  <div className="bg-white rounded-lg p-6 shadow-lg max-w-md mx-auto">
-                    <h2 className="text-2xl font-bold text-green-600 mb-4">🎬 Your Matches</h2>
-                    <div className="space-y-3">
-                      {matches.map((match, index) => (
+                  <div className="bg-white rounded-2xl p-8 shadow-xl max-w-lg mx-auto">
+                    <h2 className="text-3xl font-bold text-green-600 mb-6 flex items-center justify-center">
+                      <span className="mr-3">🏆</span>
+                      Your Matches
+                    </h2>
+                    <div className="space-y-4 mb-6">
+                      {matches.slice(0, 3).map((match, index) => (
                         <div
                           key={match.id}
-                          className="p-4 bg-green-50 rounded-lg border-l-4 border-green-500 flex items-center"
+                          className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border-l-4 border-green-500 flex items-center"
                         >
                           {match.poster_path && (
                             <img
                               src={`https://image.tmdb.org/t/p/w92${match.poster_path}`}
                               alt={match.title}
-                              className="w-12 h-18 object-cover rounded mr-3"
+                              className="w-12 h-18 object-cover rounded-lg mr-4 shadow-sm"
                             />
                           )}
-                          <div>
-                            <p className="font-semibold text-gray-800">{match.title}</p>
-                            <p className="text-sm text-green-600">🎉 Perfect match!</p>
+                          <div className="flex-1 text-left">
+                            <p className="font-bold text-gray-800 text-lg">{match.title}</p>
+                            <p className="text-sm text-green-600 font-medium">🎉 Perfect match!</p>
                           </div>
                         </div>
                       ))}
                     </div>
+                    {matches.length > 3 && (
+                      <button
+                        onClick={() => setShowAllMatches(true)}
+                        className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-full font-bold transition-colors shadow-lg w-full"
+                      >
+                        View All {matches.length} Matches →
+                      </button>
+                    )}
                   </div>
                 ) : (
-                  <div className="bg-gray-100 rounded-lg p-6 max-w-md mx-auto">
-                    <p className="text-gray-600">No matches found this time. Try again with different preferences!</p>
+                  <div className="bg-gray-50 rounded-2xl p-8 max-w-md mx-auto shadow-lg">
+                    <div className="text-4xl mb-4">😔</div>
+                    <p className="text-gray-600 text-lg">No matches found this time.</p>
+                    <p className="text-gray-500 mt-2">Try again with different preferences!</p>
                   </div>
                 )}
               </div>

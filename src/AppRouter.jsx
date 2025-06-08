@@ -10,10 +10,12 @@ import ConfigureSession from "./pages/ConfigureSession";
 import Dashboard from "./pages/Dashboard";
 import Lobby from "./pages/Lobby";
 import Header from "./components/Header";
+import { Toaster } from "react-hot-toast";
 
 export default function AppRouter() {
   return (
     <Router>
+      <Toaster />
       <Header />
       <NavigationSetup />
       <Routes>

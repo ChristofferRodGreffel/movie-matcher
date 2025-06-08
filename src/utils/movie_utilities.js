@@ -14,7 +14,7 @@ export const fetchMoviesFromTMDB = async (sessionId, config) => {
     const params = {
       with_watch_providers: providers.join(","),
       with_genres: genres.join(","),
-      with_watch_monetization_types: "flatrate, free, ads",
+      with_watch_monetization_types: "flatrate",
       page: i + 1,
       language: "da-DK",
       region: "DK",

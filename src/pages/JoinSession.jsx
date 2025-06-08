@@ -109,7 +109,7 @@ const JoinSession = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-6">
+    <div className="flex flex-col items-center justify-center h-[calc(100vh-80px)] p-6">
       <div className="bg-theme-secondary rounded-lg shadow-lg p-8 w-full max-w-md border border-theme-primary">
         <h1 className="text-2xl font-bold text-theme-primary mb-6 text-center">Join Matching Session</h1>
 
@@ -131,7 +131,7 @@ const JoinSession = () => {
                 value={joinCode}
                 onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
                 placeholder="ABC123"
-                className="w-full px-4 py-3 border border-theme-primary rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center font-mono text-lg tracking-wider pr-12 bg-theme-secondary text-theme-primary"
+                className="w-full px-4 py-3 border border-theme-primary rounded-lg text-center font-mono text-lg tracking-wider pr-12 bg-theme-secondary text-theme-primary"
                 maxLength={6}
                 disabled={joining}
                 autoFocus
@@ -149,12 +149,8 @@ const JoinSession = () => {
             type="submit"
             disabled={joining || !joinCode.trim()}
             className={`
-              w-full py-3 px-6 rounded-lg font-semibold text-white transition-all duration-200 flex items-center justify-center gap-2
-              ${
-                joining || !joinCode.trim()
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700 hover:shadow-lg"
-              }
+              cursor-pointer w-full py-3 px-6 rounded-lg font-semibold text-white transition-all duration-200 flex items-center justify-center gap-2
+              ${joining || !joinCode.trim() ? "bg-gray-400 cursor-not-allowed" : "bg-theme-accent hover:shadow-lg"}
             `}
           >
             {joining && <LoadingSpinner />}
@@ -165,7 +161,7 @@ const JoinSession = () => {
         <div className="mt-6 text-center">
           <button
             onClick={() => navigate("/")}
-            className="flex justify-center gap-2 cursor-pointer p-3 bg-theme-surface rounded-md text-theme-secondary hover:text-blue-700 font-medium transition-colors"
+            className="flex justify-center gap-2 cursor-pointer p-3 bg-theme-surface rounded-md text-theme-secondary font-medium transition-colors"
           >
             <BsArrowLeft className="text-2xl" /> Back to Home
           </button>

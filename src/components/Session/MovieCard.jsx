@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { AiFillDislike, AiFillLike } from "react-icons/ai";
 import { BiInfoCircle } from "react-icons/bi";
+import { IoStar } from "react-icons/io5";
 import { motion, useMotionValue, useTransform } from "motion/react";
 import TMDBApi from "../../api/tmdb";
 
@@ -148,15 +149,15 @@ const MovieCard = ({ movie, onVote, onButtonVote, index = 0, totalCards = 1 }) =
           <button
             disabled={!isTopCard}
             onClick={handleFlip}
-            className="absolute top-4 right-4 z-20 bg-black/50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all"
+            className="absolute cursor-pointer top-4 right-4 z-20 bg-black/50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all"
           >
             <BiInfoCircle size={20} />
           </button>
 
           {/* Rating overlay on poster */}
-          {movie.vote_average && (
+          {movie.vote_average > 0 && (
             <div className="absolute top-4 left-4 z-20 bg-black/50 text-white px-2 py-1 rounded-full flex items-center">
-              <span className="text-yellow-500 mr-1">⭐</span>
+              <IoStar className="text-yellow-400 mr-1" />
               <span className="text-sm font-medium">{formatRating(movie.vote_average)}</span>
             </div>
           )}
@@ -175,7 +176,6 @@ const MovieCard = ({ movie, onVote, onButtonVote, index = 0, totalCards = 1 }) =
             )}
           </div>
 
-          {/* Content area - flex-1 to fill remaining space */}
           <div className="flex-1 p-5 flex flex-col">
             <h2 className="text-2xl font-bold mb-2 text-theme-primary line-clamp-2">{movie.title}</h2>
             {movie.release_date && (
@@ -195,7 +195,7 @@ const MovieCard = ({ movie, onVote, onButtonVote, index = 0, totalCards = 1 }) =
           <button
             disabled={!isTopCard}
             onClick={handleFlip}
-            className="absolute top-4 right-4 z-20 bg-black/50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all"
+            className="absolute top-4 right-4 z-20 cursor-pointer bg-black/50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all"
           >
             <BiInfoCircle size={20} />
           </button>

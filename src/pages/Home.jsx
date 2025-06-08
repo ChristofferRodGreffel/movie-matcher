@@ -136,8 +136,8 @@ const Home = () => {
   }
 
   return (
-    <div className="min-h-screen bg-theme-primary relative">
-      <div className="relative flex flex-col items-center justify-center min-h-screen p-6 pt-24">
+    <div className="bg-theme-primary relative">
+      <div className="relative flex flex-col items-center justify-center h-[calc(100vh-80px)] p-6">
         <div className="w-full max-w-md">
           {/* Header */}
           <div className="text-center mb-12">

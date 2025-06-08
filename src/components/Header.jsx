@@ -195,7 +195,7 @@ const Header = () => {
                   <Link
                     to="/"
                     onClick={handleLinkClick}
-                    className="flex items-center justify-center px-6 py-4 bg-theme-link text-white rounded-lg hover:bg-theme-link-hover transition-colors font-medium text-lg shadow-lg"
+                    className="flex items-center justify-center px-6 py-4 bg-theme-accent text-white rounded-lg hover:bg-theme-link-hover transition-colors font-medium text-lg shadow-lg"
                   >
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
