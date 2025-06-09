@@ -194,10 +194,24 @@ const Dashboard = () => {
     });
   };
 
+  // Add this helper function after formatDate
+  const getSessionAge = (dateString) => {
+    const sessionDate = new Date(dateString);
+    const now = new Date();
+    const diffHours = Math.floor((now - sessionDate) / (1000 * 60 * 60));
+
+    if (diffHours >= 1) {
+      return { age: `${diffHours}h old`, isExpiring: true };
+    } else {
+      const diffMinutes = Math.floor((now - sessionDate) / (1000 * 60));
+      return { age: `${diffMinutes}m old`, isExpiring: false };
+    }
+  };
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-theme-secondary">
-        <LoadingSpinner />
+      <div className="flex items-center justify-center h-[calc(100dvh-80px)] bg-theme-secondary">
+        <LoadingSpinner size="w-10 h-10" />
       </div>
     );
   }
@@ -234,28 +248,8 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Dashboard Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-theme-secondary rounded-lg shadow-sm p-6 border border-theme-primary">
-          <div className="text-2xl font-bold text-blue-600">{sessions.length}</div>
-          <div className="text-sm text-theme-secondary">Total Sessions</div>
-        </div>
-        <div className="bg-theme-secondary rounded-lg shadow-sm p-6 border border-theme-primary">
-          <div className="text-2xl font-bold text-green-600">
-            {sessions.filter((s) => s.status === "completed").length}
-          </div>
-          <div className="text-sm text-theme-secondary">Completed Sessions</div>
-        </div>
-        <div className="bg-theme-secondary rounded-lg shadow-sm p-6 border border-theme-primary">
-          <div className="text-2xl font-bold text-purple-600">
-            {sessions.filter((s) => s.status === "matching").length}
-          </div>
-          <div className="text-sm text-theme-secondary">Active Sessions</div>
-        </div>
-      </div>
-
       {/* Sessions Section */}
-      <div className="bg-theme-secondary rounded-lg shadow-sm p-6 border border-theme-primary">
+      <div className="bg-theme-secondary rounded-lg shadow-sm p-6 border border-theme-primary mb-8">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold text-theme-primary">Your Sessions</h2>
           <div className="hidden md:flex gap-3">
@@ -294,19 +288,44 @@ const Dashboard = () => {
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {sessions.map((session) => (
-              <SessionCard
-                key={session.id}
-                session={session}
-                formatDate={formatDate}
-                getStatusColor={getStatusColor}
-                copiedCode={copiedCode}
-                copyJoinCode={copyJoinCode}
-                deleteSession={deleteSession}
-              />
-            ))}
+            {sessions.map((session) => {
+              const sessionAge = getSessionAge(session.created_at);
+
+              return (
+                <SessionCard
+                  key={session.id}
+                  session={session}
+                  formatDate={formatDate}
+                  getStatusColor={getStatusColor}
+                  copiedCode={copiedCode}
+                  copyJoinCode={copyJoinCode}
+                  deleteSession={deleteSession}
+                  sessionAge={sessionAge}
+                />
+              );
+            })}
           </div>
         )}
+      </div>
+
+      {/* Dashboard Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-theme-secondary rounded-lg shadow-sm p-6 border border-theme-primary">
+          <div className="text-2xl font-bold text-blue-600">{sessions.length}</div>
+          <div className="text-sm text-theme-secondary">Total Sessions</div>
+        </div>
+        <div className="bg-theme-secondary rounded-lg shadow-sm p-6 border border-theme-primary">
+          <div className="text-2xl font-bold text-green-600">
+            {sessions.filter((s) => s.status === "completed").length}
+          </div>
+          <div className="text-sm text-theme-secondary">Completed Sessions</div>
+        </div>
+        <div className="bg-theme-secondary rounded-lg shadow-sm p-6 border border-theme-primary">
+          <div className="text-2xl font-bold text-purple-600">
+            {sessions.filter((s) => s.status === "matching").length}
+          </div>
+          <div className="text-sm text-theme-secondary">Active Sessions</div>
+        </div>
       </div>
     </div>
   );

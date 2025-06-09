@@ -4,6 +4,7 @@ import { BiInfoCircle } from "react-icons/bi";
 import { IoStar } from "react-icons/io5";
 import { motion, useMotionValue, useTransform } from "motion/react";
 import TMDBApi from "../../api/tmdb";
+import LoadingSpinner from "../LoadingSpinner";
 
 const MovieCard = ({ movie, onVote, onButtonVote, index = 0, totalCards = 1 }) => {
   const [exitX, setExitX] = useState(0);
@@ -201,13 +202,13 @@ const MovieCard = ({ movie, onVote, onButtonVote, index = 0, totalCards = 1 }) =
           </button>
 
           {/* Full height content area for back side */}
-          <div className="p-6 flex-1 flex flex-col overflow-auto">
+          <div className="p-5 flex-1 flex flex-col overflow-auto">
             <h2 className="text-xl font-bold mb-4 text-theme-primary">{movie.title}</h2>
 
             {isLoadingDetails ? (
               <div className="flex-1 flex items-center justify-center">
                 <div className="flex flex-col items-center space-y-3">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-theme-accent"></div>
+                  <LoadingSpinner size="w-8 h-8" />
                   <div className="text-theme-primary text-sm">Loading details...</div>
                 </div>
               </div>
@@ -217,7 +218,7 @@ const MovieCard = ({ movie, onVote, onButtonVote, index = 0, totalCards = 1 }) =
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   {movieDetails?.release_date && (
                     <div className="bg-theme-primary p-3 rounded-lg">
-                      <div className="text-xs font-medium text-theme-primary/70 mb-1">ÅR</div>
+                      <div className="text-xs font-medium text-theme-primary/70 mb-1">YEAR</div>
                       <div className="font-bold text-lg">{new Date(movieDetails.release_date).getFullYear()}</div>
                     </div>
                   )}
@@ -234,14 +235,14 @@ const MovieCard = ({ movie, onVote, onButtonVote, index = 0, totalCards = 1 }) =
 
                   {movieDetails?.runtime && (
                     <div className="bg-theme-primary p-3 rounded-lg">
-                      <div className="text-xs font-medium text-theme-primary/70 mb-1">SPILLETID</div>
+                      <div className="text-xs font-medium text-theme-primary/70 mb-1">RUNTIME</div>
                       <div className="font-bold text-lg">
                         {Math.floor(movieDetails.runtime / 60)}h {movieDetails.runtime % 60}m
                       </div>
                     </div>
                   )}
 
-                  {movieDetails?.budget && movieDetails.budget > 0 && (
+                  {movieDetails?.budget != 0 && movieDetails.budget > 0 && (
                     <div className="bg-theme-primary p-3 rounded-lg">
                       <div className="text-xs font-medium text-theme-primary/70 mb-1">BUDGET</div>
                       <div className="font-bold text-lg">${(movieDetails.budget / 1000000).toFixed(0)}M</div>
@@ -269,7 +270,7 @@ const MovieCard = ({ movie, onVote, onButtonVote, index = 0, totalCards = 1 }) =
                 {/* Overview */}
                 {movieDetails?.overview && (
                   <div className="flex-1">
-                    <div className="text-xs font-medium text-theme-primary/70 mb-2">BESKRIVELSE</div>
+                    <div className="text-xs font-medium text-theme-primary/70 mb-2">OVERVIEW</div>
                     <p className="text-sm leading-relaxed text-theme-primary/90">{movieDetails.overview}</p>
                   </div>
                 )}

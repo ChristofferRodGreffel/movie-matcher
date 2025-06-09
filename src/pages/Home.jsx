@@ -126,11 +126,8 @@ const Home = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-theme-primary flex items-center justify-center pt-16">
-        <div className="bg-theme-surface backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-theme-primary">
-          <LoadingSpinner />
-          <p className="text-theme-secondary mt-4 text-center">Loading your sessions...</p>
-        </div>
+      <div className="h-[calc(100vh-80px)] flex items-center justify-center">
+        <LoadingSpinner size="w-10 h-10" />
       </div>
     );
   }
@@ -211,7 +208,7 @@ const Home = () => {
                   />
                 </svg>
                 <span>My Sessions</span>
-                <span className="ml-auto bg-[rgb(var(--color-bg-tertiary))] text-theme-secondary px-2 py-1 rounded-full text-sm font-medium">
+                <span className="ml-auto bg-[rgb(var(--color-bg-tertiary))] text-theme-secondary h-7 w-7 flex items-center justify-center rounded-full text-sm font-bold">
                   {userSessions.length}
                 </span>
               </Link>

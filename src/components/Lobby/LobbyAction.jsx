@@ -7,7 +7,7 @@ const LobbyActions = ({ isHost, participantCount, onLeaveSession, onStartSession
       <div className="flex justify-between items-center">
         <button
           onClick={onLeaveSession}
-          className="px-4 py-2 text-red-800 bg-red-100 rounded-md cursor-pointer hover:text-red-700 font-medium"
+          className="px-4 py-2 bg-red-200 border-red-700 border text-red-700 rounded-md cursor-pointer font-medium"
         >
           {isHost ? "End Session" : "Leave Session"}
         </button>

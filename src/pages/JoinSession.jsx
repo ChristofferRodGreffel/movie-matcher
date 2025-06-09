@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import supabase from "../api/supabase";
 import LoadingSpinner from "../components/LoadingSpinner";
 import QRScanner from "../components/QRScanner";
-import { BsArrowLeft } from "react-icons/bs";
+import { FaLongArrowAltLeft } from "react-icons/fa";
 import useUserStore from "../stores/userStore";
 
 const JoinSession = () => {
@@ -111,7 +111,7 @@ const JoinSession = () => {
   return (
     <div className="flex flex-col items-center justify-center h-[calc(100vh-80px)] p-6">
       <div className="bg-theme-secondary rounded-lg shadow-lg p-8 w-full max-w-md border border-theme-primary">
-        <h1 className="text-2xl font-bold text-theme-primary mb-6 text-center">Join Matching Session</h1>
+        <h1 className="text-2xl font-bold text-theme-primary mb-6 text-center">Join Session</h1>
 
         {error && (
           <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg text-red-700 dark:text-red-400 text-sm">
@@ -131,12 +131,12 @@ const JoinSession = () => {
                 value={joinCode}
                 onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
                 placeholder="ABC123"
-                className="w-full px-4 py-3 border border-theme-primary rounded-lg text-center font-mono text-lg tracking-wider pr-12 bg-theme-secondary text-theme-primary"
+                className="w-full px-4 py-3 border border-theme-primary rounded-lg text-center font-mono font-bold text-lg tracking-wider pr-12 bg-theme-secondary text-theme-primary"
                 maxLength={6}
                 disabled={joining}
                 autoFocus
               />
-              <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+              <div className="absolute right-2 top-1/2 transform -translate-y-1/2 md:hidden">
                 <QRScanner onCodeDetected={handleQRCodeDetected} onError={handleQRError} disabled={joining} />
               </div>
             </div>
@@ -157,15 +157,6 @@ const JoinSession = () => {
             {joining ? "Joining..." : "Join Session"}
           </button>
         </form>
-
-        <div className="mt-6 text-center">
-          <button
-            onClick={() => navigate("/")}
-            className="flex justify-center gap-2 cursor-pointer p-3 bg-theme-surface rounded-md text-theme-secondary font-medium transition-colors"
-          >
-            <BsArrowLeft className="text-2xl" /> Back to Home
-          </button>
-        </div>
       </div>
     </div>
   );

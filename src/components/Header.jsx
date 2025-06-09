@@ -44,9 +44,7 @@ const Header = () => {
           <nav className="hidden md:flex items-center space-x-6">
             <Link
               to="/"
-              className={`font-medium transition-colors ${
-                isActive("/") ? "text-theme-link" : "text-theme-secondary text-theme-link-hover"
-              }`}
+              className={`font-medium transition-colors ${isActive("/") ? "text-purple-500" : "text-theme-primary"}`}
             >
               Home
             </Link>
@@ -54,7 +52,7 @@ const Header = () => {
             <Link
               to="/join"
               className={`font-medium transition-colors ${
-                isActive("/join") ? "text-theme-link" : "text-theme-secondary text-theme-link-hover"
+                isActive("/join") ? "text-purple-500" : "text-theme-primary"
               }`}
             >
               Join Session
@@ -87,14 +85,10 @@ const Header = () => {
 
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="p-2 rounded-lg text-theme-secondary text-theme-link-hover hover:bg-theme-surface"
+              className="p-2 rounded-lg text-theme-secondary hover:bg-theme-surface"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                {isMenuOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                )}
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
           </div>
@@ -188,7 +182,7 @@ const Header = () => {
                       d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
                     />
                   </svg>
-                  My Sessions
+                  Dashboard
                 </Link>
 
                 <div className="pt-4 mt-4 border-t border-theme-primary">

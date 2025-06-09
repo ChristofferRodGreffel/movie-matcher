@@ -121,17 +121,6 @@ const QRScanner = ({ onCodeDetected, onError, disabled = false }) => {
 
   return (
     <>
-      {cameraError && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-          {cameraError}
-          <div className="mt-2 text-xs">
-            <p>
-              <strong>Alternative:</strong> Manually enter the code instead.
-            </p>
-          </div>
-        </div>
-      )}
-
       {scanning && (
         <div className="mb-6 relative">
           <div className="relative bg-black rounded-lg overflow-hidden">
@@ -152,7 +141,7 @@ const QRScanner = ({ onCodeDetected, onError, disabled = false }) => {
       <button
         type="button"
         onClick={startCamera}
-        className="p-2 text-gray-500 hover:text-blue-600 transition-colors"
+        className="p-2 text-theme-secondary transition-colors"
         disabled={disabled || scanning}
         title="Open Camera to Scan QR Code"
       >

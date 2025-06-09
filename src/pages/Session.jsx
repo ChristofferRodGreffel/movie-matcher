@@ -150,15 +150,31 @@ const Session = () => {
   }, [sessionId, matches.length, movies]);
 
   return (
-    <div className="h-[calc(100vh-80px)] bg-theme-primary py-8">
-      <div className="container mx-auto px-4">
+    <div className="min-h-screen bg-gradient-to-br from-theme-primary to-theme-secondary">
+      <div className="container mx-auto px-4 py-6">
+        {matches.length > 0 && (
+          <div className="text-center mb-8">
+            <div className="">
+              {/* Matches Button */}
+              <div className="flex justify-center">
+                <button
+                  onClick={() => setShowAllMatches(true)}
+                  className="cursor-pointer bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-8 py-3 rounded-full font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center space-x-2"
+                >
+                  <span>View Matches ({matches.length})</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* All Matches Modal */}
         {showAllMatches && (
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
             <div className="bg-theme-secondary rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
               <div className="sticky top-0 bg-theme-secondary rounded-t-2xl border-b p-6 flex justify-between items-center flex-shrink-0">
                 <h2 className="text-2xl font-bold text-theme-primary flex items-center">
-                  🎬 Alle matches ({matches.length})
+                  🎬 All matches ({matches.length})
                 </h2>
                 <button
                   onClick={() => setShowAllMatches(false)}
@@ -262,46 +278,58 @@ const Session = () => {
             </div>
           </div>
         )}
-        <div className="text-center text-theme-primary mb-8">
-          {/* Enhanced Match Counter and Controls */}
-          <div className="flex flex-col items-center space-y-4">
-            {matches.length > 0 && (
-              <>
-                <button
-                  onClick={() => setShowAllMatches(true)}
-                  className="cursor-pointer bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-full font-medium transition-colors shadow-lg hover:shadow-xl"
-                >
-                  Se matches ({matches.length})
-                </button>
-              </>
-            )}
+
+        {!loading ? (
+          <div className="text-center">
+            <div className="flex justify-center">
+              {isHost ? (
+                <div className="flex flex-col items-center justify-center text-theme-primary bg-theme-secondary backdrop-blur-sm rounded-2xl p-8 shadow-lg max-w-md">
+                  <LoadingSpinner size="w-8 h-8" />
+                  <p className="mt-4 font-medium">Fetching movies...</p>
+                  <p className="text-sm mt-2">Finding the perfect selection for you</p>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center text-theme-primary bg-theme-secondary backdrop-blur-sm rounded-2xl p-8 shadow-lg max-w-md">
+                  <LoadingSpinner size="w-8 h-8" />
+                  <p className="mt-4 font-medium">Waiting for host...</p>
+                  <p className="text-sm mt-2">The host is preparing your movie selection</p>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-        {currentMovie ? (
+        ) : (
+          // Show movie cards when there are movies to vote on
           <div className="flex flex-col items-center min-h-[600px] relative">
-            {/* Cards Stack */}
-            <div className="flex justify-center relative mb-8">
-              {/* Show up to 3 cards stacked */}
-              {movies.slice(currentMovieIndex, currentMovieIndex + 3).map((movie, index) => (
-                <MovieCard
-                  key={movie.id}
-                  movie={movie}
-                  onVote={index === 0 ? handleVote : () => {}} // Only allow voting on top card
-                  onButtonVote={
-                    index === 0
-                      ? (fn) => {
-                          buttonVoteRef.current = fn;
-                        }
-                      : undefined
-                  }
-                  index={index}
-                  totalCards={Math.min(3, movies.length - currentMovieIndex)}
-                />
-              ))}
+            {/* Cards Container with Enhanced Background */}
+            <div className="relative">
+              {/* Decorative Background Elements */}
+              <div className="absolute -top-20 -left-20 w-40 h-40 bg-theme-accent/10 rounded-full blur-3xl"></div>
+              <div className="absolute -bottom-20 -right-20 w-40 h-40 bg-green-500/10 rounded-full blur-3xl"></div>
+
+              {/* Cards Stack */}
+              <div className="flex justify-center relative mb-8">
+                {/* Show up to 3 cards stacked */}
+                {movies.slice(currentMovieIndex, currentMovieIndex + 3).map((movie, index) => (
+                  <MovieCard
+                    key={movie.id}
+                    movie={movie}
+                    onVote={index === 0 ? handleVote : () => {}} // Only allow voting on top card
+                    onButtonVote={
+                      index === 0
+                        ? (fn) => {
+                            buttonVoteRef.current = fn;
+                          }
+                        : undefined
+                    }
+                    index={index}
+                    totalCards={Math.min(3, movies.length - currentMovieIndex)}
+                  />
+                ))}
+              </div>
             </div>
 
             {/* Enhanced Action Buttons Container */}
-            <div className="fixed bottom-10 z-10 bg-theme-secondary rounded-full drop-shadow-2xl shadow-xl p-3 flex space-x-3 border border-theme-primary">
+            <div className="fixed bottom-10 z-10 bg-theme-secondary/90 backdrop-blur-sm rounded-full drop-shadow-2xl shadow-xl p-3 flex space-x-3">
               <button
                 className="cursor-pointer bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-6 py-4 rounded-full shadow-lg transition-all duration-200 transform hover:scale-105 flex items-center space-x-2"
                 onClick={() => buttonVoteRef.current?.("dislike")}
@@ -317,71 +345,6 @@ const Session = () => {
                 <span className="text-sm font-bold">Watch</span>
               </button>
             </div>
-          </div>
-        ) : (
-          <div className="text-center">
-            {movies.length === 0 ? (
-              <div className="text-xl m-auto text-theme-primary">
-                {isHost ? (
-                  <div className="bg-primary rounded-2xl p-8 shadow-lg max-w-md mx-auto">
-                    <LoadingSpinner />
-                    <p className="mt-4 font-medium">Fetching movies...</p>
-                  </div>
-                ) : (
-                  <div className="bg-primary rounded-2xl p-8 shadow-lg max-w-md mx-auto">
-                    <LoadingSpinner />
-                    <p className="mt-4 font-medium">Waiting for host to prepare movies...</p>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div>
-                <div className="text-6xl mb-6">🎬</div>
-                <p className="text-2xl text-gray-700 mb-8 font-medium">All done!</p>
-                {matches.length > 0 ? (
-                  <div className="bg-white rounded-2xl p-8 shadow-xl max-w-lg mx-auto">
-                    <h2 className="text-3xl font-bold text-green-600 mb-6 flex items-center justify-center">
-                      <span className="mr-3">🏆</span>
-                      Your Matches
-                    </h2>
-                    <div className="space-y-4 mb-6">
-                      {matches.slice(0, 3).map((match, index) => (
-                        <div
-                          key={match.id}
-                          className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border-l-4 border-green-500 flex items-center"
-                        >
-                          {match.poster_path && (
-                            <img
-                              src={`https://image.tmdb.org/t/p/w92${match.poster_path}`}
-                              alt={match.title}
-                              className="w-12 h-18 object-cover rounded-lg mr-4 shadow-sm"
-                            />
-                          )}
-                          <div className="flex-1 text-left">
-                            <p className="font-bold text-gray-800 text-lg">{match.title}</p>
-                            <p className="text-sm text-green-600 font-medium">🎉 Perfect match!</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    {matches.length > 3 && (
-                      <button
-                        onClick={() => setShowAllMatches(true)}
-                        className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-full font-bold transition-colors shadow-lg w-full"
-                      >
-                        View All {matches.length} Matches →
-                      </button>
-                    )}
-                  </div>
-                ) : (
-                  <div className="bg-gray-50 rounded-2xl p-8 max-w-md mx-auto shadow-lg">
-                    <div className="text-4xl mb-4">😔</div>
-                    <p className="text-gray-600 text-lg">No matches found this time.</p>
-                    <p className="text-gray-500 mt-2">Try again with different preferences!</p>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
         )}
       </div>

@@ -1,12 +1,13 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-const SessionCard = ({ session, formatDate, getStatusColor, copiedCode, copyJoinCode, deleteSession }) => {
+const SessionCard = ({ session, formatDate, getStatusColor, copiedCode, copyJoinCode, deleteSession, sessionAge }) => {
   const sessionLink = {
     waiting: `/lobby/${session.id}`,
     configuring: `/configure/${session.id}`,
     matching: `/session/${session.id}`,
   };
+
   return (
     <div
       key={session.id}
@@ -16,10 +17,21 @@ const SessionCard = ({ session, formatDate, getStatusColor, copiedCode, copyJoin
         <div>
           <h3 className="font-semibold mb-1">Session {session.id.slice(0, 8)}...</h3>
           <p className="text-sm">Created {formatDate(session.created_at)}</p>
+          {/* Add session age display */}
+          <p className={`text-xs mt-1 ${sessionAge.isExpiring ? "text-red-600 font-medium" : "text-theme-secondary"}`}>
+            {sessionAge.age}
+            {sessionAge.isExpiring && " • Expiring soon!"}
+          </p>
         </div>
-        <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(session.status)}`}>
-          {session.status}
-        </span>
+        <div className="flex flex-col items-end gap-2">
+          <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(session.status)}`}>
+            {session.status}
+          </span>
+          {/* Add expiring badge */}
+          {sessionAge.isExpiring && (
+            <span className="px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800">Expiring</span>
+          )}
+        </div>
       </div>
 
       <div className="mb-4 text-sm">
@@ -30,7 +42,7 @@ const SessionCard = ({ session, formatDate, getStatusColor, copiedCode, copyJoin
           <div className="font-mono font-bold text-lg text-theme-primary text-center tracking-wider">
             {session.join_code}
           </div>
-          <div className="text-xs text-theme-primary text-center mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="text-xs text-theme-primary text-center mt-1 transition-opacity">
             {copiedCode === session.join_code ? "Copied!" : "Click to copy"}
           </div>
         </div>
