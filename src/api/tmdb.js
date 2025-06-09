@@ -38,7 +38,7 @@ class TMDBApi {
     return this.request(`/genre/movie/list?language=${language}`);
   }
 
-  static async getMovieDetails(movieId, language = "da-DK") {
+  static async getMovieDetails(movieId, language = "en-US") {
     return this.request(`/movie/${movieId}?language=${language}`);
   }
 

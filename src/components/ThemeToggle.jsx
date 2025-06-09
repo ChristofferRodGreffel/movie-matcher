@@ -58,7 +58,7 @@ const ThemeToggle = ({ className = "" }) => {
 
       {/* Moon Icon */}
       <svg
-        className={`absolute w-5 h-5 text-theme-link transition-all duration-300 transform ${
+        className={`absolute w-5 h-5 text-theme-secondary transition-all duration-300 transform ${
           isDark ? "scale-100 rotate-0 opacity-100" : "scale-0 -rotate-90 opacity-0"
         }`}
         fill="currentColor"

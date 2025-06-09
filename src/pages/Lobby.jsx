@@ -19,7 +19,7 @@ const Lobby = () => {
   const [copiedCode, setCopiedCode] = useState(false);
   const [joining, setJoining] = useState(false);
 
-  const { getUserId, userId } = useUserStore();
+  const { userId } = useUserStore();
 
   useEffect(() => {
     initializeLobby();

@@ -141,7 +141,7 @@ const Header = () => {
                   onClick={handleLinkClick}
                   className={`flex items-center px-4 py-3 rounded-lg text-lg font-medium transition-colors ${
                     isActive("/")
-                      ? "bg-theme-link-light text-theme-link border-l-4 border-theme-link"
+                      ? "bg-theme-link-light text-theme-primary border-l-4 border-theme-link"
                       : "text-theme-primary hover:bg-theme-surface text-theme-link-hover"
                   }`}
                 >
@@ -161,7 +161,7 @@ const Header = () => {
                   onClick={handleLinkClick}
                   className={`flex items-center px-4 py-3 rounded-lg text-lg font-medium transition-colors ${
                     isActive("/join")
-                      ? "bg-theme-link-light text-theme-link border-l-4 border-theme-link"
+                      ? "bg-theme-link-light text-theme-primary border-l-4 border-theme-link"
                       : "text-theme-primary hover:bg-theme-surface text-theme-link-hover"
                   }`}
                 >
@@ -176,7 +176,7 @@ const Header = () => {
                   onClick={handleLinkClick}
                   className={`flex items-center px-4 py-3 rounded-lg text-lg font-medium transition-colors ${
                     isActive("/dashboard")
-                      ? "bg-theme-link-light text-theme-link border-l-4 border-theme-link"
+                      ? "bg-theme-link-light text-theme-primary border-l-4 border-theme-link"
                       : "text-theme-primary hover:bg-theme-surface text-theme-link-hover"
                   }`}
                 >

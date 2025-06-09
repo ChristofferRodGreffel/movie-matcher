@@ -69,6 +69,8 @@ const MovieCard = ({ movie, onVote, onButtonVote, index = 0, totalCards = 1 }) =
   const handleFlip = async () => {
     if (!isTopCard) return;
 
+    setIsFlipped(!isFlipped);
+
     if (!isFlipped && !movieDetails) {
       setIsLoadingDetails(true);
       try {
@@ -79,8 +81,6 @@ const MovieCard = ({ movie, onVote, onButtonVote, index = 0, totalCards = 1 }) =
       }
       setIsLoadingDetails(false);
     }
-
-    setIsFlipped(!isFlipped);
   };
 
   // Expose button vote function to parent only when it changes
@@ -206,7 +206,10 @@ const MovieCard = ({ movie, onVote, onButtonVote, index = 0, totalCards = 1 }) =
 
             {isLoadingDetails ? (
               <div className="flex-1 flex items-center justify-center">
-                <div className="text-theme-primary">Loading details...</div>
+                <div className="flex flex-col items-center space-y-3">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-theme-accent"></div>
+                  <div className="text-theme-primary text-sm">Loading details...</div>
+                </div>
               </div>
             ) : (
               <div className="space-y-4 text-theme-primary flex-1 overflow-y-auto">

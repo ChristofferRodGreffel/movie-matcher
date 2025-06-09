@@ -280,7 +280,7 @@ const Dashboard = () => {
             <p className="text-theme-secondary mb-6">
               Get started by creating your first session or joining an existing one.
             </p>
-            <div className="flex justify-center gap-4">
+            <div className="flex flex-col md:flex-row justify-center gap-4">
               <Link to="/" className="inline-block px-6 py-3 bg-theme-accent text-white rounded-lg transition-colors">
                 Create Your First Session
               </Link>

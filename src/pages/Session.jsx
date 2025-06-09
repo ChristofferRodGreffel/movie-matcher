@@ -139,7 +139,6 @@ const Session = () => {
           filter: `id=eq.${sessionId}`,
         },
         (payload) => {
-          console.log("Session updated:", payload);
           fetchMatches(false);
         }
       )
@@ -189,7 +188,6 @@ const Session = () => {
                             <div className="flex flex-wrap gap-1">
                               {matchProviders[match.id] ? (
                                 <div className="flex flex-wrap gap-2">
-                                  {console.log("Match Provider:", matchProviders[match.id])}
                                   {/* Show flatrate (subscription) providers */}
                                   {matchProviders[match.id].flatrate?.map((provider) => (
                                     <div

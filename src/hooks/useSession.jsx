@@ -8,6 +8,7 @@ export const useSession = (sessionId, userId, isHost) => {
   const [loading, setLoading] = useState(true);
   const [movies, setMovies] = useState([]);
   const [currentMovieIndex, setCurrentMovieIndex] = useState(0);
+  const [noMoviesAvailable, setNoMoviesAvailable] = useState(false);
 
   const fetchSessionConfig = async () => {
     try {
@@ -46,7 +47,16 @@ export const useSession = (sessionId, userId, isHost) => {
           console.log("Movies already exist for this session, loading from database...");
           const dbMovies = await loadMoviesFromDatabase(sessionId);
           const filteredMovies = await filterVotedMovies(dbMovies, sessionId, userId);
+          
+          if (filteredMovies.length === 0) {
+            console.log("No movies available after filtering voted movies");
+            setNoMoviesAvailable(true);
+            setMovies([]);
+            return;
+          }
+          
           setMovies(filteredMovies);
+          setNoMoviesAvailable(false);
 
           if (!config.movies_fetched) {
             await supabase.from("sessions").update({ movies_fetched: true }).eq("id", sessionId);
@@ -57,6 +67,14 @@ export const useSession = (sessionId, userId, isHost) => {
         console.log("No movies found for session, fetching from TMDB...");
         const { allMovies, moviesToInsert } = await fetchMoviesFromTMDB(sessionId, config);
 
+        if (allMovies.length === 0) {
+          console.log("No movies found with the current filters");
+          setNoMoviesAvailable(true);
+          setMovies([]);
+          await supabase.from("sessions").update({ movies_fetched: true }).eq("id", sessionId);
+          return;
+        }
+
         if (moviesToInsert.length > 0) {
           const { error: insertError } = await supabase.from("session_movies").insert(moviesToInsert);
 
@@ -64,13 +82,31 @@ export const useSession = (sessionId, userId, isHost) => {
             console.error("Error inserting movies:", insertError);
             const dbMovies = await loadMoviesFromDatabase(sessionId);
             const filteredMovies = await filterVotedMovies(dbMovies, sessionId, userId);
+            
+            if (filteredMovies.length === 0) {
+              console.log("No movies available after filtering");
+              setNoMoviesAvailable(true);
+              setMovies([]);
+              return;
+            }
+            
             setMovies(filteredMovies);
+            setNoMoviesAvailable(false);
             return;
           }
         }
 
         const filteredMovies = await filterVotedMovies(allMovies, sessionId, userId);
-        setMovies(filteredMovies);
+        
+        if (filteredMovies.length === 0) {
+          console.log("No movies available after filtering voted movies");
+          setNoMoviesAvailable(true);
+          setMovies([]);
+        } else {
+          setMovies(filteredMovies);
+          setNoMoviesAvailable(false);
+        }
+        
         await supabase.from("sessions").update({ movies_fetched: true }).eq("id", sessionId);
       } else {
         await waitForMoviesAndLoad();
@@ -95,7 +131,15 @@ export const useSession = (sessionId, userId, isHost) => {
 
     const dbMovies = await loadMoviesFromDatabase(sessionId);
     const filteredMovies = await filterVotedMovies(dbMovies, sessionId, userId);
-    setMovies(filteredMovies);
+    
+    if (filteredMovies.length === 0) {
+      console.log("No movies available for this user");
+      setNoMoviesAvailable(true);
+      setMovies([]);
+    } else {
+      setMovies(filteredMovies);
+      setNoMoviesAvailable(false);
+    }
   };
 
   const handleVote = async (movieId, voteType) => {
@@ -159,5 +203,6 @@ export const useSession = (sessionId, userId, isHost) => {
     currentMovieIndex,
     handleVote,
     currentMovie: movies[currentMovieIndex],
+    noMoviesAvailable,
   };
 };

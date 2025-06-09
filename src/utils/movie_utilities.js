@@ -12,11 +12,13 @@ export const fetchMoviesFromTMDB = async (sessionId, config) => {
     console.log(`Host fetching movies: page ${i + 1}`);
 
     const params = {
-      with_watch_providers: providers.join(","),
-      with_genres: genres.join(","),
+      with_watch_providers: providers.join("|"),
+      with_genres: genres.join("|"),
       with_watch_monetization_types: "flatrate",
+      with_original_language: "en|da",
+      watch_region: "DK",
       page: i + 1,
-      language: "da-DK",
+      language: "en-US",
       region: "DK",
       sort_by: "popularity.desc",
       include_adult: false,
