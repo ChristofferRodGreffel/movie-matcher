@@ -279,7 +279,7 @@ const Session = () => {
           </div>
         )}
 
-        {!loading ? (
+        {loading ? (
           <div className="text-center">
             <div className="flex justify-center">
               {isHost ? (
