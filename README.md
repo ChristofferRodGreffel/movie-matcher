@@ -66,7 +66,7 @@ npm run dev
 
 ## 🌍 Live Demo
 
-_Coming soon:_ [movie-matcher.example.com](https://movie-matcher.example.com)
+[movie-matcing.netlify.app](https://movie-matcing.netlify.app)
 
 ---
 
