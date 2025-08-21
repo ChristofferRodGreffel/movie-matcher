@@ -35,6 +35,18 @@ const useUserStore = create((set, get) => ({
         console.log("Creating new user with ID:", userId, "and username:", username);
 
         try {
+          // Try to set user context before creating user
+          try {
+            await supabase.rpc('set_config', {
+              setting_name: 'request.user_id',
+              setting_value: userId,
+              is_local: true
+            });
+          } catch (configError) {
+            // RPC might not exist, continue without it
+            console.log("Could not set user context:", configError.message);
+          }
+          
           await supabase.from("users").insert({
             id: userId,
             username: username,
@@ -42,6 +54,18 @@ const useUserStore = create((set, get) => ({
         } catch (error) {
           console.error("Failed to create user:", error);
           // Don't throw here - allow app to continue with local user data
+        }
+      } else {
+        // For existing users, try to set context as well
+        try {
+          await supabase.rpc('set_config', {
+            setting_name: 'request.user_id',
+            setting_value: userId,
+            is_local: true
+          });
+        } catch (configError) {
+          // RPC might not exist, continue without it
+          console.log("Could not set user context:", configError.message);
         }
       }
 

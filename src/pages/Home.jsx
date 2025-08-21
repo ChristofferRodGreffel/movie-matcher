@@ -18,6 +18,7 @@ const Home = () => {
   const [creatingSession, setCreatingSession] = useState(false);
   const [userSessions, setUserSessions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const { initializeUser, getUserId, userId } = useUserStore();
