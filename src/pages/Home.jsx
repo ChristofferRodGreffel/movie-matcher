@@ -83,6 +83,7 @@ const Home = () => {
 
     try {
       setCreatingSession(true);
+      setError(""); // Clear any previous errors
 
       const sessionId = uuidv4();
       const userId = await getUserId();
@@ -93,33 +94,75 @@ const Home = () => {
 
       while (!isUnique) {
         joinCode = generateJoinCode();
-        const { data, error } = await supabase.from("sessions").select("id").eq("join_code", joinCode).maybeSingle();
+        
+        try {
+          const { data, error } = await supabase.from("sessions").select("id").eq("join_code", joinCode).maybeSingle();
 
-        if (error) {
-          console.error("Error checking join code:", error);
-          break;
+          if (error) {
+            // Handle specific RLS error
+            if (error.code === '42704' && error.message.includes('request.user_id')) {
+              console.log("RLS configuration issue detected, attempting alternative approach...");
+              // Try to continue - the RLS policy might be misconfigured but data operations might still work
+              isUnique = true;
+              break;
+            } else {
+              console.error("Error checking join code:", error);
+              throw error;
+            }
+          }
+
+          if (!data) isUnique = true;
+        } catch (checkError) {
+          // Handle RLS errors gracefully
+          if (checkError.code === '42704' && checkError.message.includes('request.user_id')) {
+            console.log("RLS error during join code check, proceeding with generated code");
+            isUnique = true;
+          } else {
+            throw checkError;
+          }
         }
-
-        if (!data) isUnique = true;
       }
 
       // Create session with join code
-      const { error } = await supabase.from("sessions").insert({
-        id: sessionId,
-        owner_id: userId,
-        status: "waiting",
-        genre_ids: [],
-        platform_ids: [],
-        join_code: joinCode,
-      });
+      try {
+        const { error } = await supabase.from("sessions").insert({
+          id: sessionId,
+          owner_id: userId,
+          status: "waiting",
+          genre_ids: [],
+          platform_ids: [],
+          join_code: joinCode,
+        });
 
-      if (error) throw error;
+        if (error) {
+          // Handle specific RLS error with helpful message
+          if (error.code === '42704' && error.message.includes('request.user_id')) {
+            throw new Error("Database configuration issue detected. Please contact support or try again later.");
+          }
+          throw error;
+        }
+      } catch (insertError) {
+        // Additional error handling for session creation
+        if (insertError.code === '42704' && insertError.message.includes('request.user_id')) {
+          setError("There's a configuration issue with the database. Please try refreshing the page or contact support.");
+          return;
+        }
+        throw insertError;
+      }
 
       localStorage.setItem(`host_${sessionId}`, "true");
       navigate(`/lobby/${sessionId}`);
     } catch (error) {
       console.error("Failed to create session:", error);
-      alert("Failed to create session. Please try again.");
+      
+      // Provide more specific error messages
+      if (error.message.includes("Database configuration issue")) {
+        setError(error.message);
+      } else if (error.code === '42704') {
+        setError("There's a database configuration issue. Please try again or contact support.");
+      } else {
+        setError("Failed to create session. Please try again.");
+      }
     } finally {
       setCreatingSession(false);
     }

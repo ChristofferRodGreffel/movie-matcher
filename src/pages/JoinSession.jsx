@@ -39,13 +39,33 @@ const JoinSession = () => {
       const userId = await getUserId();
 
       // Find session by join code
-      const { data: session, error: sessionError } = await supabase
-        .from("sessions")
-        .select("id, status, owner_id")
-        .eq("join_code", code.trim().toUpperCase())
-        .single();
+      let session;
+      try {
+        const { data: sessionData, error: sessionError } = await supabase
+          .from("sessions")
+          .select("id, status, owner_id")
+          .eq("join_code", code.trim().toUpperCase())
+          .single();
 
-      if (sessionError || !session) {
+        if (sessionError) {
+          // Handle specific RLS error
+          if (sessionError.code === '42704' && sessionError.message.includes('request.user_id')) {
+            setError("Database configuration issue detected. Please try again or contact support.");
+            return;
+          }
+          throw sessionError;
+        }
+
+        session = sessionData;
+      } catch (sessionError) {
+        if (sessionError.code === '42704' && sessionError.message.includes('request.user_id')) {
+          setError("There's a database configuration issue. Please try refreshing the page or contact support.");
+          return;
+        }
+        throw sessionError;
+      }
+
+      if (!session) {
         setError("Session not found. Please check your join code.");
         return;
       }
@@ -56,26 +76,53 @@ const JoinSession = () => {
       }
 
       // Check if user is already in the session
-      const { data: existingParticipant } = await supabase
-        .from("session_users")
-        .select("id")
-        .eq("session_id", session.id)
-        .eq("user_id", userId)
-        .maybeSingle();
+      let existingParticipant;
+      try {
+        const { data } = await supabase
+          .from("session_users")
+          .select("id")
+          .eq("session_id", session.id)
+          .eq("user_id", userId)
+          .maybeSingle();
+        
+        existingParticipant = data;
+      } catch (checkError) {
+        // Handle RLS errors gracefully for participant check
+        if (checkError.code === '42704' && checkError.message.includes('request.user_id')) {
+          console.log("RLS error during participant check, proceeding to add user");
+          existingParticipant = null;
+        } else {
+          throw checkError;
+        }
+      }
 
       // Add user to session if not already joined
       if (!existingParticipant) {
-        const { error: joinError } = await supabase.from("session_users").insert({
-          id: uuidv4(),
-          session_id: session.id,
-          user_id: userId,
-        });
+        try {
+          const { error: joinError } = await supabase.from("session_users").insert({
+            id: uuidv4(),
+            session_id: session.id,
+            user_id: userId,
+          });
 
-        if (joinError && joinError.code !== "23505") {
-          // Ignore duplicate key errors
-          console.error("Error joining session:", joinError);
-          setError("Failed to join session. Please try again.");
-          return;
+          if (joinError) {
+            // Handle specific RLS error
+            if (joinError.code === '42704' && joinError.message.includes('request.user_id')) {
+              setError("Database configuration issue. Please try again or contact support.");
+              return;
+            } else if (joinError.code !== "23505") {
+              // Ignore duplicate key errors
+              console.error("Error joining session:", joinError);
+              setError("Failed to join session. Please try again.");
+              return;
+            }
+          }
+        } catch (joinError) {
+          if (joinError.code === '42704' && joinError.message.includes('request.user_id')) {
+            setError("There's a database configuration issue. Please try refreshing the page or contact support.");
+            return;
+          }
+          throw joinError;
         }
       }
 
@@ -83,7 +130,13 @@ const JoinSession = () => {
       navigate(`/lobby/${session.id}`);
     } catch (error) {
       console.error("Failed to join session:", error);
-      setError("Failed to join session. Please try again.");
+      
+      // Provide more specific error messages
+      if (error.code === '42704') {
+        setError("Database configuration issue detected. Please try again or contact support.");
+      } else {
+        setError("Failed to join session. Please try again.");
+      }
     } finally {
       setJoining(false);
     }
